@@ -1,21 +1,20 @@
-import { useState, useEffect, useCallback } from 'react';
 import * as SQLite from 'expo-sqlite';
+import { useCallback, useEffect, useState } from 'react';
 import {
   Poem,
-  getAllPoems,
-  getPoemById,
-  searchPoems,
-  getPoemsByAuthor,
-  getPoemsByDynasty,
   getAllAuthors,
   getAllDynasties,
-  getTotalPoemCount,
+  getAllPoems,
+  getDatabaseStatistics,
+  getPoemById,
   getPoemCountByAuthor,
   getPoemCountByDynasty,
-  getSearchResultCount,
+  getPoemsByAuthor,
+  getPoemsByDynasty,
   getRandomPoem,
   getRandomPoems,
-  getDatabaseStatistics,
+  getSearchResultCount,
+  searchPoems,
 } from '../database/queries';
 
 /**
@@ -40,7 +39,7 @@ export function useAllPoems(db: SQLite.SQLiteDatabase | null, limit: number = 20
         setLoading(false);
       }
     },
-    [db, limit]
+    [db, limit],
   );
 
   return { poems, loading, error, fetchPoems };
@@ -61,7 +60,7 @@ export function usePoem(db: SQLite.SQLiteDatabase | null, id: number | null) {
       setLoading(true);
       setError(null);
       try {
-        const data = await getPoemById(db, id);
+        const data = await getPoemById(db!, id!);
         setPoem(data);
       } catch (err) {
         setError(err instanceof Error ? err : new Error('加载诗词失败'));
@@ -108,7 +107,7 @@ export function useSearchPoems(db: SQLite.SQLiteDatabase | null, limit: number =
         setLoading(false);
       }
     },
-    [db, limit]
+    [db, limit],
   );
 
   return { poems, totalCount, loading, error, search };
@@ -117,7 +116,11 @@ export function useSearchPoems(db: SQLite.SQLiteDatabase | null, limit: number =
 /**
  * 按作者获取诗词的 Hook
  */
-export function usePoemsByAuthor(db: SQLite.SQLiteDatabase | null, author: string | null, limit: number = 20) {
+export function usePoemsByAuthor(
+  db: SQLite.SQLiteDatabase | null,
+  author: string | null,
+  limit: number = 20,
+) {
   const [poems, setPoems] = useState<Poem[]>([]);
   const [totalCount, setTotalCount] = useState(0);
   const [loading, setLoading] = useState(false);
@@ -142,7 +145,7 @@ export function usePoemsByAuthor(db: SQLite.SQLiteDatabase | null, author: strin
         setLoading(false);
       }
     },
-    [db, author, limit]
+    [db, author, limit],
   );
 
   useEffect(() => {
@@ -157,7 +160,11 @@ export function usePoemsByAuthor(db: SQLite.SQLiteDatabase | null, author: strin
 /**
  * 按朝代获取诗词的 Hook
  */
-export function usePoemsByDynasty(db: SQLite.SQLiteDatabase | null, dynasty: string | null, limit: number = 20) {
+export function usePoemsByDynasty(
+  db: SQLite.SQLiteDatabase | null,
+  dynasty: string | null,
+  limit: number = 20,
+) {
   const [poems, setPoems] = useState<Poem[]>([]);
   const [totalCount, setTotalCount] = useState(0);
   const [loading, setLoading] = useState(false);
@@ -182,7 +189,7 @@ export function usePoemsByDynasty(db: SQLite.SQLiteDatabase | null, dynasty: str
         setLoading(false);
       }
     },
-    [db, dynasty, limit]
+    [db, dynasty, limit],
   );
 
   useEffect(() => {
@@ -209,7 +216,7 @@ export function useAllAuthors(db: SQLite.SQLiteDatabase | null) {
       setLoading(true);
       setError(null);
       try {
-        const data = await getAllAuthors(db);
+        const data = await getAllAuthors(db!);
         setAuthors(data);
       } catch (err) {
         setError(err instanceof Error ? err : new Error('加载作者列表失败'));
@@ -239,7 +246,7 @@ export function useAllDynasties(db: SQLite.SQLiteDatabase | null) {
       setLoading(true);
       setError(null);
       try {
-        const data = await getAllDynasties(db);
+        const data = await getAllDynasties(db!);
         setDynasties(data);
       } catch (err) {
         setError(err instanceof Error ? err : new Error('加载朝代列表失败'));
@@ -333,7 +340,7 @@ export function useDatabaseStatistics(db: SQLite.SQLiteDatabase | null) {
       setLoading(true);
       setError(null);
       try {
-        const data = await getDatabaseStatistics(db);
+        const data = await getDatabaseStatistics(db!);
         setStats(data);
       } catch (err) {
         setError(err instanceof Error ? err : new Error('加载统计信息失败'));

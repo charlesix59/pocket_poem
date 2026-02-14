@@ -1,6 +1,6 @@
 import React, { useState, useCallback } from 'react';
 import { View, Text, ScrollView, TouchableOpacity, ActivityIndicator, TextInput } from 'react-native';
-import { useDatabase } from '../context/DatabaseContext';
+import { useSQLiteContext } from 'expo-sqlite';
 import {
   useRandomPoem,
   useRandomPoems,
@@ -42,7 +42,7 @@ function PoemCard({ poem }: { poem: any }) {
  * 主 Demo 组件
  */
 export default function DemoScreen() {
-  const { db, isReady, error: dbError } = useDatabase();
+  const db = useSQLiteContext();
   const [selectedTab, setSelectedTab] = useState('random');
   const [searchKeyword, setSearchKeyword] = useState('');
 
@@ -67,23 +67,6 @@ export default function DemoScreen() {
       searchPoems.search(searchKeyword, 0);
     }
   }, [searchKeyword, searchPoems]);
-
-  if (!isReady) {
-    return (
-      <View style={styles.container}>
-        <ActivityIndicator size="large" color="#666" />
-        <Text style={styles.loadingText}>初始化数据库中...</Text>
-      </View>
-    );
-  }
-
-  if (dbError) {
-    return (
-      <View style={styles.container}>
-        <Text style={styles.errorText}>数据库初始化失败: {dbError.message}</Text>
-      </View>
-    );
-  }
 
   return (
     <ScrollView style={styles.container} showsVerticalScrollIndicator={false}>
@@ -244,7 +227,7 @@ export default function DemoScreen() {
   );
 }
 
-const styles = {
+const styles = ({
   container: {
     flex: 1,
     backgroundColor: '#f5f5f5',
@@ -256,7 +239,7 @@ const styles = {
   },
   headerTitle: {
     fontSize: 28,
-    fontWeight: 'bold',
+    fontWeight: '700' as any,
     color: '#333',
     marginBottom: 4,
   },
@@ -284,7 +267,7 @@ const styles = {
   },
   statNumber: {
     fontSize: 20,
-    fontWeight: 'bold',
+    fontWeight: '700' as any,
     color: '#333',
     marginBottom: 4,
   },
@@ -294,6 +277,7 @@ const styles = {
   },
   tabContainer: {
     flexDirection: 'row' as const,
+    justifyContent: 'space-around' as any,
     marginBottom: 20,
     gap: 12,
   },
@@ -358,7 +342,7 @@ const styles = {
   },
   poemTitle: {
     fontSize: 18,
-    fontWeight: 'bold',
+    fontWeight: '700' as any,
     color: '#333',
     marginBottom: 8,
   },
@@ -388,7 +372,7 @@ const styles = {
   },
   sectionTitle: {
     fontSize: 12,
-    fontWeight: '600',
+    fontWeight: '600' as any,
     color: '#666',
     marginBottom: 6,
   },
@@ -401,7 +385,7 @@ const styles = {
     fontSize: 14,
     color: '#666',
     marginBottom: 12,
-    fontWeight: '500',
+    fontWeight: '500' as any,
   },
   emptyText: {
     fontSize: 14,
@@ -444,9 +428,9 @@ const styles = {
   dynastyText: {
     fontSize: 12,
     color: '#fff',
-    fontWeight: '600',
+    fontWeight: '600' as any,
   },
   footer: {
     height: 40,
   },
-};
+} as any);

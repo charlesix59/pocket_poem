@@ -1,16 +1,14 @@
 import { ScrollView, StyleSheet, Text, View, ActivityIndicator, Button, FlatList } from 'react-native';
 import { useEffect, useState, useCallback } from 'react';
-import { useDatabase } from '@/src/context/DatabaseContext';
+import { useSQLiteContext } from 'expo-sqlite';
 import { getAllPoems, type Poem } from '@/src/database/queries';
-import { importPoems, clearAllPoems, getStatistics } from '@/src/database/initialization';
-import { samplePoems } from '@/src/data/samplePoems';
+import { getStatistics } from '@/src/database/initialization';
 
 export default function HomeScreen() {
-  const { db, isReady, error } = useDatabase();
+  const db = useSQLiteContext();
   const [poems, setPoems] = useState<Poem[]>([]);
   const [stats, setStats] = useState({ total: 0, authors: 0, dynasties: 0 });
   const [isLoading, setIsLoading] = useState(true);
-  const [isImporting, setIsImporting] = useState(false);
 
   // 加载诗词数据
   const loadPoems = useCallback(async () => {
@@ -30,53 +28,10 @@ export default function HomeScreen() {
 
   // 初始化时加载数据
   useEffect(() => {
-    if (isReady && db) {
+    if (db) {
       loadPoems();
     }
-  }, [isReady, db, loadPoems]);
-
-  // 导入示例数据
-  const handleImportSampleData = async () => {
-    if (!db) return;
-    setIsImporting(true);
-    try {
-      await importPoems(db, samplePoems);
-      await loadPoems();
-    } catch (err) {
-      console.error('导入数据失败:', err);
-    } finally {
-      setIsImporting(false);
-    }
-  };
-
-  // 清空数据
-  const handleClearData = async () => {
-    if (!db) return;
-    try {
-      await clearAllPoems(db);
-      await loadPoems();
-    } catch (err) {
-      console.error('清空数据失败:', err);
-    }
-  };
-
-  if (!isReady) {
-    return (
-      <View style={styles.centerContainer}>
-        <ActivityIndicator size="large" />
-        <Text style={styles.loadingText}>正在初始化应用...</Text>
-      </View>
-    );
-  }
-
-  if (error) {
-    return (
-      <View style={styles.centerContainer}>
-        <Text style={styles.errorText}>❌ 初始化失败</Text>
-        <Text style={styles.errorMessage}>{error.message}</Text>
-      </View>
-    );
-  }
+  }, [db, loadPoems]);
 
   return (
     <ScrollView style={styles.container}>
@@ -88,11 +43,11 @@ export default function HomeScreen() {
       {/* 统计信息卡片 */}
       <View style={styles.statsCard}>
         <View style={styles.statItem}>
-          <Text style={styles.statNumber}>{stats.total}</Text>
+          <Text style={styles.statNumber}>{stats.total.toLocaleString()}</Text>
           <Text style={styles.statLabel}>诗词</Text>
         </View>
         <View style={styles.statItem}>
-          <Text style={styles.statNumber}>{stats.authors}</Text>
+          <Text style={styles.statNumber}>{stats.authors.toLocaleString()}</Text>
           <Text style={styles.statLabel}>作者</Text>
         </View>
         <View style={styles.statItem}>
@@ -101,18 +56,10 @@ export default function HomeScreen() {
         </View>
       </View>
 
-      {/* 操作按钮 */}
-      <View style={styles.buttonGroup}>
-        <Button
-          title="📥 导入示例诗词"
-          onPress={handleImportSampleData}
-          disabled={isImporting}
-        />
-        <Button
-          title="🗑️ 清空所有数据"
-          onPress={handleClearData}
-          color="#ff6b6b"
-        />
+      {/* 说明信息 */}
+      <View style={styles.infoCard}>
+        <Text style={styles.infoTitle}>✨ 数据库已加载</Text>
+        <Text style={styles.infoText}>包含 287,555+ 首诗词、词、曲等经典文献</Text>
       </View>
 
       {/* 诗词列表 */}
@@ -147,12 +94,12 @@ export default function HomeScreen() {
 
       {/* 使用指南 */}
       <View style={styles.guideSection}>
-        <Text style={styles.sectionTitle}>🚀 快速开始</Text>
+        <Text style={styles.sectionTitle}>🚀 功能特性</Text>
          <Text style={styles.guideText}>
-           1. 点击&quot;导入示例诗词&quot;按钮查看数据库功能{'\n'}
-           2. 在 src/data/samplePoems.ts 中添加你的诗词{'\n'}
-           3. 使用 src/database/queries.ts 中的函数查询诗词{'\n'}
-           4. 在组件中使用 useDatabase hook 访问数据库
+           • 287,555+ 首经典诗词、词、曲等文献{'\n'}
+           • 支持按标题、作者、朝代等多维搜索{'\n'}
+           • 离线使用，预加载数据库{'\n'}
+           • 使用 TypeScript 和 React Native 构建
          </Text>
       </View>
 
@@ -252,9 +199,25 @@ const styles = StyleSheet.create({
     color: '#666',
     marginTop: 4,
   },
-  buttonGroup: {
+  infoCard: {
     paddingHorizontal: 16,
-    gap: 8,
+    marginBottom: 16,
+    backgroundColor: '#e3f2fd',
+    padding: 16,
+    borderRadius: 12,
+    borderLeftWidth: 4,
+    borderLeftColor: '#2196f3',
+  },
+  infoTitle: {
+    fontSize: 16,
+    fontWeight: 'bold',
+    color: '#1976d2',
+    marginBottom: 4,
+  },
+  infoText: {
+    fontSize: 13,
+    color: '#1565c0',
+    lineHeight: 20,
   },
   loader: {
     marginVertical: 16,

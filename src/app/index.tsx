@@ -1,7 +1,7 @@
 import React from 'react';
 import { View, Text, TouchableOpacity, ScrollView } from 'react-native';
 import { useRouter } from 'expo-router';
-import { useDatabase } from '../context/DatabaseContext';
+import { useSQLiteContext } from 'expo-sqlite';
 import { useDatabaseStatistics } from '../hooks/usePoems';
 
 /**
@@ -9,7 +9,7 @@ import { useDatabaseStatistics } from '../hooks/usePoems';
  */
 export default function HomeScreen() {
   const router = useRouter();
-  const { db, isReady, error } = useDatabase();
+  const db = useSQLiteContext();
   const { stats, loading } = useDatabaseStatistics(db);
 
   return (
@@ -22,12 +22,9 @@ export default function HomeScreen() {
 
       {/* 数据库状态 */}
       <View style={styles.statusCard}>
-        {error ? (
-          <>
-            <Text style={styles.errorTitle}>⚠️ 数据库初始化失败</Text>
-            <Text style={styles.errorMessage}>{error.message}</Text>
-          </>
-        ) : isReady && !loading ? (
+        {loading ? (
+          <Text style={styles.loadingText}>加载统计信息中...</Text>
+        ) : (
           <>
             <Text style={styles.statusTitle}>✅ 数据库已就绪</Text>
             <View style={styles.statsGrid}>
@@ -45,8 +42,6 @@ export default function HomeScreen() {
               </View>
             </View>
           </>
-        ) : (
-          <Text style={styles.loadingText}>初始化中...</Text>
         )}
       </View>
 
@@ -159,7 +154,7 @@ function TechItem({ name, version }: { name: string; version: string }) {
   );
 }
 
-const styles = {
+const styles = ({
   container: {
     flex: 1,
     backgroundColor: '#f5f5f5',
@@ -214,14 +209,14 @@ const styles = {
   },
   statsGrid: {
     flexDirection: 'row' as const,
-    justifyContent: 'space-around',
+    justifyContent: 'space-around' as any,
   },
   statBox: {
     alignItems: 'center' as const,
   },
   statValue: {
     fontSize: 22,
-    fontWeight: 'bold',
+    fontWeight: 'bold' as any,
     color: '#333',
     marginBottom: 4,
   },
@@ -280,7 +275,7 @@ const styles = {
   docLink: {
     fontSize: 13,
     color: '#0066cc',
-    fontWeight: '600',
+    fontWeight: '600' as any,
     marginTop: 8,
   },
   navButton: {
@@ -329,4 +324,4 @@ const styles = {
   footer: {
     height: 40,
   },
-};
+} as any);
