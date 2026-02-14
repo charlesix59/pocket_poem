@@ -7,7 +7,7 @@ import {
   useDatabaseStatistics,
   useSearchPoems,
   useAllDynasties,
-} from '../hooks/usePoems';
+} from '@/src/hooks/usePoems';
 
 /**
  * 诗词卡片组件

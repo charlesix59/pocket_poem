@@ -1,11 +1,13 @@
 import { ScrollView, StyleSheet, Text, View, ActivityIndicator, Button, FlatList } from 'react-native';
 import { useEffect, useState, useCallback } from 'react';
 import { useSQLiteContext } from 'expo-sqlite';
+import { useRouter } from 'expo-router';
 import { getAllPoems, type Poem } from '@/src/database/queries';
 import { getStatistics } from '@/src/database/initialization';
 
 export default function HomeScreen() {
   const db = useSQLiteContext();
+  const router = useRouter();
   const [poems, setPoems] = useState<Poem[]>([]);
   const [stats, setStats] = useState({ total: 0, authors: 0, dynasties: 0 });
   const [isLoading, setIsLoading] = useState(true);
@@ -60,6 +62,7 @@ export default function HomeScreen() {
       <View style={styles.infoCard}>
         <Text style={styles.infoTitle}>✨ 数据库已加载</Text>
         <Text style={styles.infoText}>包含 287,555+ 首诗词、词、曲等经典文献</Text>
+        <Button title="🚀 打开 Demo" onPress={() => router.push('/demo')} />
       </View>
 
       {/* 诗词列表 */}
