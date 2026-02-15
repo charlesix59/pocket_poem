@@ -73,4 +73,6 @@ Join our community of developers creating universal apps.
 1. 技术栈选型 & 项目初始化
 2. 数据库设计与数据库初始化
 3. 数据库的链接与工具函数
-4. 
+4. 组件处理
+   1. 安全区组件
+5. 字体子集化、字体压缩与引入

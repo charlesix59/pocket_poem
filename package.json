@@ -7,6 +7,8 @@
     "reset-project": "node ./scripts/reset-project.js",
     "generate-db": "node ./scripts/generate-db.js",
     "verify-db": "node ./scripts/verify-db.js",
+    "extract-chars": "node ./scripts/extract-chars.js",
+    "subset-font": "python scripts/subset-font.py",
     "android": "expo start --android",
     "ios": "expo start --ios",
     "web": "expo start --web",

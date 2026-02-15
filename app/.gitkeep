@@ -1,0 +1,11 @@
+# 此目录已迁移至 src/app
+# This directory has been migrated to src/app
+
+应用路由现在位于 src/app 目录中。
+The application routes are now located in the src/app directory.
+
+更新已在 app.json 中的 expo-router 插件中配置：
+origin: "./src/app"
+
+请不要在此目录中添加新文件。
+Do not add new files to this directory.
