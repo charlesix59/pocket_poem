@@ -26,10 +26,7 @@ function initializeDatabase(db) {
       author TEXT,
       dynasty TEXT,
       content TEXT NOT NULL,
-      translation TEXT,
-      appreciation TEXT,
-      tags TEXT,
-      created_at DATETIME DEFAULT CURRENT_TIMESTAMP
+      hot INTEGER DEFAULT 0
     );
   `);
 
@@ -53,10 +50,7 @@ function processTangshi(data, dynasty) {
     dynasty: dynasty,
     content: Array.isArray(item.paragraphs) 
       ? item.paragraphs.join('\n') 
-      : (item.paragraphs || ''),
-    translation: null,
-    appreciation: null,
-    tags: null
+      : (item.paragraphs || '')
   }));
 }
 
@@ -70,10 +64,7 @@ function processSongci(data, dynasty) {
     dynasty: dynasty,
     content: Array.isArray(item.paragraphs)
       ? item.paragraphs.join('\n')
-      : (item.paragraphs || ''),
-    translation: null,
-    appreciation: null,
-    tags: item.tags ? JSON.stringify(item.tags) : null
+      : (item.paragraphs || '')
   }));
 }
 
@@ -87,10 +78,7 @@ function processYuanqu(data, dynasty) {
     dynasty: dynasty,
     content: Array.isArray(item.paragraphs)
       ? item.paragraphs.join('\n')
-      : (item.paragraphs || ''),
-    translation: null,
-    appreciation: null,
-    tags: null
+      : (item.paragraphs || '')
   }));
 }
 
@@ -105,9 +93,6 @@ function processHuajianji(data, dynasty) {
     content: Array.isArray(item.paragraphs)
       ? item.paragraphs.join('\n')
       : (item.paragraphs || ''),
-    translation: null,
-    appreciation: null,
-    tags: null
   }));
 }
 
@@ -122,9 +107,6 @@ function processNantang(data, dynasty) {
     content: Array.isArray(item.paragraphs)
       ? item.paragraphs.join('\n')
       : (item.paragraphs || ''),
-    translation: null,
-    appreciation: null,
-    tags: null
   }));
 }
 
@@ -139,9 +121,6 @@ function processCaocao(data, dynasty) {
     content: Array.isArray(item.paragraphs)
       ? item.paragraphs.join('\n')
       : (item.paragraphs || ''),
-    translation: null,
-    appreciation: null,
-    tags: null
   }));
 }
 
@@ -156,9 +135,6 @@ function processNarlan(data, dynasty) {
     content: Array.isArray(item.para)
       ? item.para.join('\n')
       : (item.para ? Array.isArray(item.para) ? item.para.join('\n') : item.para : ''),
-    translation: null,
-    appreciation: null,
-    tags: null
   }));
 }
 
@@ -221,8 +197,8 @@ function importPoemsToDatabase(db, poems, showProgress = true) {
   }
   
   const stmt = db.prepare(`
-    INSERT INTO poems (title, author, dynasty, content, translation, appreciation, tags)
-    VALUES (?, ?, ?, ?, ?, ?, ?)
+    INSERT INTO poems (title, author, dynasty, content)
+    VALUES (?, ?, ?, ?)
   `);
 
   const BATCH_SIZE = 5000; // 批量处理大小
@@ -233,10 +209,7 @@ function importPoemsToDatabase(db, poems, showProgress = true) {
         poem.title,
         poem.author,
         poem.dynasty,
-        poem.content,
-        poem.translation,
-        poem.appreciation,
-        poem.tags
+        poem.content
       );
       count++;
       

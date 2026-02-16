@@ -1,161 +1,114 @@
 # 快速开始指南
 
-## ⚡ 5 分钟快速上手
-
-### 1️⃣ 启动应用
+## ⚡ 30 秒快速开始
 
 ```bash
+# 1️⃣  生成数据库
+node scripts/generate-db.js
+
+# 2️⃣  标记热门诗词
+node scripts/mark-hot-poems.js
+
+# 3️⃣  启动应用
 npm start
 ```
 
-然后选择平台运行：
-- `i` - iOS
-- `a` - Android  
-- `w` - Web
-
-### 2️⃣ 导入示例数据
-
-打开应用后，在首页点击 **"📥 导入示例诗词"** 按钮。
-
-### 3️⃣ 查看效果
-
-你现在可以看到：
-- ✅ 4 首示例诗词
-- ✅ 统计信息（总诗词数、作者数、朝代数）
-- ✅ 诗词卡片展示
+完成！现在打开应用，进入"诗库" → "热门诗词"来查看 452 首热门诗词。
 
 ---
 
-## 🎯 常见任务
+## 📱 在应用中使用
 
-### 添加自己的诗词
+1. **打开应用**
+   ```
+   npm start
+   ```
 
-编辑 `src/data/samplePoems.ts`:
+2. **进入诗库页面**
+   - 在底部 Tab 栏点击"诗库"
 
-```typescript
-export const samplePoems = [
-  {
-    title: '你的诗名',
-    author: '你的作者',
-    dynasty: '朝代',
-    content: '诗词内容',
-    translation: '翻译（可选）',
-    appreciation: '赏析（可选）',
-    tags: '标签,多个标签'
-  },
-  // 添加更多...
-];
-```
-
-保存后重新运行应用即可。
-
-### 查询诗词
-
-在任何组件中使用：
-
-```typescript
-import { useDatabase } from '@/src/context/DatabaseContext';
-import { getAllPoems, searchPoems } from '@/src/database/queries';
-
-export function MyComponent() {
-  const { db } = useDatabase();
-
-  // 获取所有诗词
-  const [poems, setPoems] = useState([]);
-  
-  useEffect(() => {
-    if (db) {
-      getAllPoems(db, 20, 0).then(setPoems);
-    }
-  }, [db]);
-
-  return (
-    // 显示 poems...
-  );
-}
-```
-
-### 搜索诗词
-
-```typescript
-import { searchPoems } from '@/src/database/queries';
-
-const results = await searchPoems(db, '月', 20, 0);
-```
+3. **查看热门诗词**
+   - 点击"热门诗词"选项卡
+   - 滚动查看更多诗词
+   - 点击诗词卡片查看详情
 
 ---
 
-## 📱 项目结构速查
+## ✅ 验证安装
 
+### 检查数据库
+
+```bash
+node -e "const db = require('better-sqlite3')('./pocket_poem.db'); const r = db.prepare('SELECT COUNT(*) as c FROM poems WHERE hot = 1').get(); console.log('✅ Hot poems:', r.c);"
 ```
-关键文件位置：
-├── src/database/initialization.ts   ← 数据库初始化
-├── src/database/queries.ts          ← 查询函数
-├── src/context/DatabaseContext.tsx  ← 全局 DB Context
-├── src/data/samplePoems.ts          ← 你的诗词数据
-└── app/(tabs)/index.tsx             ← 首页演示
-```
+
+**预期输出**：`✅ Hot poems: 452`
+
+### 检查应用
+
+1. 启动应用：`npm start`
+2. 进入"诗库" Tab 页
+3. 点击"热门诗词"选项卡
+4. 应该看到诗词列表
 
 ---
 
-## 🔍 数据库函数速查
+## 🔧 常见问题
 
-### 导入数据
-```typescript
-import { importPoems } from '@/src/database/initialization';
-await importPoems(db, poemsArray);
+### Q: 脚本运行失败？
+
+```bash
+# 检查依赖
+npm install
+
+# 重新生成数据库
+rm pocket_poem.db
+node scripts/generate-db.js
+node scripts/mark-hot-poems.js
 ```
 
-### 查询功能
-```typescript
-import { 
-  getPoemById,
-  getAllPoems,
-  searchPoems,
-  getPoemsByAuthor,
-  getPoemsByDynasty,
-  getAllAuthors,
-  getAllDynasties,
-  getTotalPoemCount
-} from '@/src/database/queries';
+### Q: 诗词没有显示？
 
-await getAllPoems(db, 20, 0);      // 获取 20 条，跳过 0 条
-await searchPoems(db, '月', 20);   // 搜索包含"月"的诗词
-await getPoemsByAuthor(db, '李白'); // 获取李白的诗
+确保按顺序运行两个脚本：
+```bash
+node scripts/generate-db.js    # 必须先运行
+node scripts/mark-hot-poems.js # 再运行这个
 ```
 
-### 统计
-```typescript
-import { getStatistics } from '@/src/database/initialization';
-const stats = await getStatistics(db);
-// { total: 100, authors: 50, dynasties: 5 }
-```
+### Q: 性能很慢？
+
+- 首次生成数据库需要 1-2 分钟，这是正常的
+- 应用运行时应该很流畅
 
 ---
 
-## 🐛 常见问题快速解决
+## 📚 详细文档
 
-**问题**: 修改数据后看不到变化？
-> 重新运行 `npm start` 重启应用
-
-**问题**: "Database not ready"？
-> 等待 `isReady === true`：
-> ```typescript
-> const { db, isReady } = useDatabase();
-> if (!isReady) return <Loading />;
-> ```
-
-**问题**: 数据库文件在哪？
-> 自动存储在应用沙箱目录，无需关心
+- **SCRIPTS_USAGE.md** - 脚本详细说明
+- **HOT_POEMS_SETUP.md** - 功能完整指南
+- **IMPLEMENTATION_SUMMARY.md** - 技术实现细节
 
 ---
 
-## 📚 下一步
+## 🎯 核心功能
 
-- 阅读 [SETUP.md](./SETUP.md) 了解完整文档
-- 查看 `app/(tabs)/index.tsx` 了解页面实现
-- 在 `app/(tabs)/` 下创建更多页面
+✨ **452 首热门诗词** - 根据 popular-poems.json 标记  
+✨ **分页加载** - 每页 10 首，自动加载更多  
+✨ **快速查阅** - 点击诗词卡片查看完整内容  
+✨ **详情页面** - 展示题目、作者、内容  
 
 ---
 
-**就这么简单！开始开发你的诗词应用吧！** 📖✨
+## 💾 数据概览
+
+| 项目 | 数值 |
+|------|------|
+| 数据库大小 | 91 MB |
+| 总诗词数 | 287,555 首 |
+| 热门诗词 | 452 首 |
+| 生成时间 | 1-2 分钟 |
+| 标记时间 | 10-30 秒 |
+
+---
+
+**👉 现在就开始吧！运行上面的三个命令，享受热门诗词！**

@@ -6,10 +6,7 @@ export interface Poem {
   author?: string;
   dynasty?: string;
   content: string;
-  translation?: string;
-  appreciation?: string;
-  tags?: string;
-  created_at?: string;
+  hot?: number;
 }
 
 /**
@@ -268,6 +265,41 @@ export async function getDatabaseStatistics(db: SQLite.SQLiteDatabase) {
     return result || { total: 0, authors: 0, dynasties: 0 };
   } catch (error) {
     console.error('获取统计信息失败:', error);
+    throw error;
+  }
+}
+
+/**
+ * 获取热门诗词（带分页）
+ */
+export async function getHotPoems(
+  db: SQLite.SQLiteDatabase,
+  limit: number = 20,
+  offset: number = 0
+) {
+  try {
+    const poems = await db.getAllAsync<Poem>(
+      'SELECT * FROM poems WHERE hot = 1 ORDER BY id DESC LIMIT ? OFFSET ?',
+      [limit, offset]
+    );
+    return poems;
+  } catch (error) {
+    console.error('获取热门诗词失败:', error);
+    throw error;
+  }
+}
+
+/**
+ * 获取热门诗词总数
+ */
+export async function getHotPoemCount(db: SQLite.SQLiteDatabase) {
+  try {
+    const result = await db.getFirstAsync<{ count: number }>(
+      'SELECT COUNT(*) as count FROM poems WHERE hot = 1'
+    );
+    return result?.count || 0;
+  } catch (error) {
+    console.error('获取热门诗词总数失败:', error);
     throw error;
   }
 }

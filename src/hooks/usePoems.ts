@@ -15,6 +15,8 @@ import {
   getRandomPoems,
   getSearchResultCount,
   searchPoems,
+  getHotPoems,
+  getHotPoemCount,
 } from '../database/queries';
 
 /**
@@ -353,4 +355,52 @@ export function useDatabaseStatistics(db: SQLite.SQLiteDatabase | null) {
   }, [db]);
 
   return { stats, loading, error };
+}
+
+/**
+ * 获取热门诗词（带分页）的 Hook
+ */
+export function useHotPoems(db: SQLite.SQLiteDatabase | null, limit: number = 20) {
+  const [poems, setPoems] = useState<Poem[]>([]);
+  const [totalCount, setTotalCount] = useState(0);
+  const [loading, setLoading] = useState(false);
+  const [error, setError] = useState<Error | null>(null);
+
+  const fetchHotPoems = useCallback(
+    async (offset: number = 0) => {
+      if (!db) return;
+      setLoading(true);
+      setError(null);
+      try {
+        if (offset === 0) {
+          // 首次加载时，同时获取数据和总数
+          const [data, count] = await Promise.all([
+            getHotPoems(db, limit, offset),
+            getHotPoemCount(db),
+          ]);
+          setPoems(data);
+          setTotalCount(count);
+        } else {
+          // 分页加载时，只获取数据并追加
+          const data = await getHotPoems(db, limit, offset);
+          setPoems((prevPoems) => [...prevPoems, ...data]);
+        }
+      } catch (err) {
+        setError(err instanceof Error ? err : new Error('加载热门诗词失败'));
+      } finally {
+        setLoading(false);
+      }
+    },
+    [db, limit],
+  );
+
+  useEffect(() => {
+    // 初始加载一次数据
+    if (db) {
+      fetchHotPoems(0);
+    }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [db, limit]); // 仅依赖 db 和 limit，不依赖 fetchHotPoems，避免无限循环
+
+  return { poems, totalCount, loading, error, fetchHotPoems };
 }

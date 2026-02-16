@@ -23,18 +23,6 @@ function PoemCard({ poem }: { poem: any }) {
         </Text>
       )}
       <Text style={styles.poemContent}>{poem.content}</Text>
-      {poem.translation && (
-        <View style={styles.translationSection}>
-          <Text style={styles.sectionTitle}>译文：</Text>
-          <Text style={styles.sectionContent}>{poem.translation}</Text>
-        </View>
-      )}
-      {poem.appreciation && (
-        <View style={styles.appreciationSection}>
-          <Text style={styles.sectionTitle}>赏析：</Text>
-          <Text style={styles.sectionContent}>{poem.appreciation}</Text>
-        </View>
-      )}
     </View>
   );
 }
@@ -359,30 +347,6 @@ const styles = ({
     color: '#555',
     lineHeight: 24,
     marginBottom: 12,
-  },
-  translationSection: {
-    borderTopWidth: 1,
-    borderTopColor: '#f0f0f0',
-    paddingTop: 12,
-    marginTop: 12,
-    marginBottom: 8,
-  },
-  appreciationSection: {
-    borderTopWidth: 1,
-    borderTopColor: '#f0f0f0',
-    paddingTop: 12,
-    marginTop: 8,
-  },
-  sectionTitle: {
-    fontSize: 12,
-    fontWeight: '600' as any,
-    color: '#666',
-    marginBottom: 6,
-  },
-  sectionContent: {
-    fontSize: 12,
-    color: '#888',
-    lineHeight: 18,
   },
   resultCount: {
     fontSize: 14,
