@@ -322,3 +322,28 @@ export async function getAuthorsWithCount(db: SQLite.SQLiteDatabase) {
     throw error;
   }
 }
+
+/**
+ * 获取搜索建议（标题匹配，最多10个）
+ */
+export async function getSearchSuggestions(
+  db: SQLite.SQLiteDatabase,
+  keyword: string
+) {
+  try {
+    if (!keyword.trim()) {
+      return [];
+    }
+    const searchTerm = `%${keyword}%`;
+    const suggestions = await db.getAllAsync<{ title: string }>(
+      `SELECT DISTINCT title FROM poems 
+       WHERE title LIKE ? OR content LIKE ? OR author LIKE ?
+       LIMIT 10`,
+      [searchTerm, searchTerm, searchTerm]
+    );
+    return suggestions.map(s => s.title);
+  } catch (error) {
+    console.error('获取搜索建议失败:', error);
+    throw error;
+  }
+}
