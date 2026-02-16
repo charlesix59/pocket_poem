@@ -30,12 +30,51 @@ function initializeDatabase(db) {
     );
   `);
 
+  // 创建收藏夹表
+  db.exec(`
+    CREATE TABLE IF NOT EXISTS collections (
+      id INTEGER PRIMARY KEY AUTOINCREMENT,
+      name TEXT NOT NULL UNIQUE,
+      description TEXT,
+      created_at DATETIME DEFAULT CURRENT_TIMESTAMP,
+      is_default INTEGER DEFAULT 0
+    );
+  `);
+
+  // 创建收藏项表
+  db.exec(`
+    CREATE TABLE IF NOT EXISTS collection_items (
+      id INTEGER PRIMARY KEY AUTOINCREMENT,
+      collection_id INTEGER NOT NULL,
+      poem_id INTEGER NOT NULL,
+      created_at DATETIME DEFAULT CURRENT_TIMESTAMP,
+      FOREIGN KEY (collection_id) REFERENCES collections(id) ON DELETE CASCADE,
+      FOREIGN KEY (poem_id) REFERENCES poems(id) ON DELETE CASCADE,
+      UNIQUE(collection_id, poem_id)
+    );
+  `);
+
   // 创建索引
   db.exec(`
     CREATE INDEX IF NOT EXISTS idx_author ON poems(author);
     CREATE INDEX IF NOT EXISTS idx_dynasty ON poems(dynasty);
     CREATE INDEX IF NOT EXISTS idx_title ON poems(title);
+    CREATE INDEX IF NOT EXISTS idx_collection_id ON collection_items(collection_id);
+    CREATE INDEX IF NOT EXISTS idx_poem_id ON collection_items(poem_id);
   `);
+
+  // 创建默认收藏夹
+  try {
+    const checkDefault = db.prepare(`SELECT COUNT(*) as count FROM collections WHERE is_default = 1`).get();
+    if (checkDefault.count === 0) {
+      db.prepare(`
+        INSERT INTO collections (name, description, is_default) 
+        VALUES (?, ?, 1)
+      `).run('默认收藏', '默认收藏夹');
+    }
+  } catch (error) {
+    // 忽略插入错误，可能默认收藏夹已存在
+  }
 
   console.log('✓ 表结构创建完成');
 }

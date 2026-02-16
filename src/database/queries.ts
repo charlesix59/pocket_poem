@@ -347,3 +347,181 @@ export async function getSearchSuggestions(
     throw error;
   }
 }
+
+/**
+ * 获取所有收藏夹
+ */
+export async function getAllCollections(db: SQLite.SQLiteDatabase) {
+  try {
+    const collections = await db.getAllAsync<{ id: number; name: string; description: string; is_default: number }>(
+      `SELECT id, name, description, is_default FROM collections ORDER BY is_default DESC, created_at ASC`
+    );
+    return collections;
+  } catch (error) {
+    console.error('获取收藏夹列表失败:', error);
+    throw error;
+  }
+}
+
+/**
+ * 获取默认收藏夹
+ */
+export async function getDefaultCollection(db: SQLite.SQLiteDatabase) {
+  try {
+    const collection = await db.getFirstAsync<{ id: number; name: string }>(
+      `SELECT id, name FROM collections WHERE is_default = 1 LIMIT 1`
+    );
+    return collection;
+  } catch (error) {
+    console.error('获取默认收藏夹失败:', error);
+    throw error;
+  }
+}
+
+/**
+ * 创建新收藏夹
+ */
+export async function createCollection(
+  db: SQLite.SQLiteDatabase,
+  name: string,
+  description: string = ''
+) {
+  try {
+    const result = await db.runAsync(
+      `INSERT INTO collections (name, description, is_default) VALUES (?, ?, 0)`,
+      [name, description]
+    );
+    return result.lastInsertRowId;
+  } catch (error) {
+    console.error('创建收藏夹失败:', error);
+    throw error;
+  }
+}
+
+/**
+ * 添加诗词到收藏夹
+ */
+export async function addPoemToCollection(
+  db: SQLite.SQLiteDatabase,
+  collectionId: number,
+  poemId: number
+) {
+  try {
+    // 检查是否已经存在
+    const existing = await db.getFirstAsync<{ id: number }>(
+      `SELECT id FROM collection_items WHERE collection_id = ? AND poem_id = ?`,
+      [collectionId, poemId]
+    );
+
+    if (existing) {
+      return existing.id;
+    }
+
+    const result = await db.runAsync(
+      `INSERT INTO collection_items (collection_id, poem_id) VALUES (?, ?)`,
+      [collectionId, poemId]
+    );
+    return result.lastInsertRowId;
+  } catch (error) {
+    console.error('添加诗词到收藏夹失败:', error);
+    throw error;
+  }
+}
+
+/**
+ * 检查诗词是否已在收藏夹中
+ */
+export async function isCollected(
+  db: SQLite.SQLiteDatabase,
+  collectionId: number,
+  poemId: number
+) {
+  try {
+    const result = await db.getFirstAsync<{ count: number }>(
+      `SELECT COUNT(*) as count FROM collection_items WHERE collection_id = ? AND poem_id = ?`,
+      [collectionId, poemId]
+    );
+    return (result?.count || 0) > 0;
+  } catch (error) {
+    console.error('检查收藏状态失败:', error);
+    throw error;
+  }
+}
+
+/**
+ * 获取收藏夹中的所有诗词
+ */
+export async function getCollectionPoems(
+  db: SQLite.SQLiteDatabase,
+  collectionId: number,
+  limit: number = 20,
+  offset: number = 0
+) {
+  try {
+    const poems = await db.getAllAsync<Poem>(
+      `SELECT p.* FROM poems p
+       INNER JOIN collection_items ci ON p.id = ci.poem_id
+       WHERE ci.collection_id = ?
+       ORDER BY ci.created_at DESC
+       LIMIT ? OFFSET ?`,
+      [collectionId, limit, offset]
+    );
+    return poems;
+  } catch (error) {
+    console.error('获取收藏夹诗词失败:', error);
+    throw error;
+  }
+}
+
+/**
+ * 获取收藏夹中的诗词总数
+ */
+export async function getCollectionPoemCount(
+  db: SQLite.SQLiteDatabase,
+  collectionId: number
+) {
+  try {
+    const result = await db.getFirstAsync<{ count: number }>(
+      `SELECT COUNT(*) as count FROM collection_items WHERE collection_id = ?`,
+      [collectionId]
+    );
+    return result?.count || 0;
+  } catch (error) {
+    console.error('获取收藏夹诗词数失败:', error);
+    throw error;
+  }
+}
+
+/**
+ * 从收藏夹中删除诗词
+ */
+export async function removePoemFromCollection(
+  db: SQLite.SQLiteDatabase,
+  collectionId: number,
+  poemId: number
+) {
+  try {
+    await db.runAsync(
+      `DELETE FROM collection_items WHERE collection_id = ? AND poem_id = ?`,
+      [collectionId, poemId]
+    );
+  } catch (error) {
+    console.error('从收藏夹中删除诗词失败:', error);
+    throw error;
+  }
+}
+
+/**
+ * 删除收藏夹
+ */
+export async function deleteCollection(db: SQLite.SQLiteDatabase, collectionId: number) {
+  try {
+    await db.runAsync(
+      `DELETE FROM collections WHERE id = ? AND is_default = 0`,
+      [collectionId]
+    );
+  } catch (error) {
+    console.error('删除收藏夹失败:', error);
+    throw error;
+  }
+}

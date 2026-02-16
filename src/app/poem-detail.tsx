@@ -2,7 +2,7 @@ import { useLocalSearchParams } from 'expo-router';
 import { useSQLiteContext } from 'expo-sqlite';
 import React, { useEffect, useState } from 'react';
 import { ActivityIndicator, ScrollView, StyleSheet, Text, View } from 'react-native';
-import { SafeAreaView } from 'react-native-safe-area-context';
+import { SaveButton, SaveToCollectionModal, SafeContainer } from '@/src/components';
 
 interface PoemData {
   id: number;
@@ -17,6 +17,7 @@ export default function PoemDetailScreen() {
   const db = useSQLiteContext();
   const [poem, setPoem] = useState<PoemData | null>(null);
   const [loading, setLoading] = useState(true);
+  const [showSaveModal, setShowSaveModal] = useState(false);
 
   useEffect(() => {
     const fetchPoemDetail = async () => {
@@ -51,26 +52,26 @@ export default function PoemDetailScreen() {
 
   if (loading) {
     return (
-      <SafeAreaView style={styles.container}>
+      <SafeContainer backgroundColor="#FFFFFF">
         <View style={styles.loadingContainer}>
           <ActivityIndicator size="large" color="#333" />
         </View>
-      </SafeAreaView>
+      </SafeContainer>
     );
   }
 
   if (!poem) {
     return (
-      <SafeAreaView style={styles.container}>
+      <SafeContainer backgroundColor="#FFFFFF">
         <View style={styles.loadingContainer}>
           <Text style={styles.errorText}>诗词未找到</Text>
         </View>
-      </SafeAreaView>
+      </SafeContainer>
     );
   }
 
   return (
-    <SafeAreaView style={styles.container} edges={['bottom']}>
+    <SafeContainer backgroundColor="#FFFFFF">
       <ScrollView
         style={styles.scrollView}
         contentContainerStyle={styles.contentContainer}
@@ -93,7 +94,22 @@ export default function PoemDetailScreen() {
           <Text style={styles.content}>{poem.content}</Text>
         </View>
       </ScrollView>
-    </SafeAreaView>
+
+      {/* 底部收藏按钮 */}
+      <View style={styles.bottomButtonContainer}>
+        <SaveButton 
+          onPress={() => setShowSaveModal(true)}
+          style={styles.saveButton}
+        />
+      </View>
+
+      {/* 选择收藏夹 Modal */}
+      <SaveToCollectionModal
+        visible={showSaveModal}
+        poemId={poem.id}
+        onClose={() => setShowSaveModal(false)}
+      />
+    </SafeContainer>
   );
 }
 
@@ -146,5 +162,15 @@ const styles = StyleSheet.create({
     fontSize: 16,
     color: '#999',
     textAlign: 'center',
+  },
+  bottomButtonContainer: {
+    paddingHorizontal: 20,
+    paddingVertical: 16,
+    borderTopWidth: 1,
+    borderTopColor: '#F0F0F0',
+    backgroundColor: '#FFFFFF',
+  },
+  saveButton: {
+    width: '100%',
   },
 });

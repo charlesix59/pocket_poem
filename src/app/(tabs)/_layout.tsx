@@ -32,6 +32,15 @@ export default function TabLayout() {
           ),
         }}
       />
+      <Tabs.Screen
+        name="collections"
+        options={{
+          title: '辑录',
+          tabBarIcon: ({ color }) => (
+            <IconSymbol size={28} name="bookmark.fill" color={color} />
+          ),
+        }}
+      />
     </Tabs>
   );
 }

@@ -1,6 +1,5 @@
 import React, { useState, useCallback, useRef, useMemo } from 'react';
 import {
-  SafeAreaView,
   StyleSheet,
   View,
   TextInput,
@@ -14,6 +13,7 @@ import {
 import { useSQLiteContext } from 'expo-sqlite';
 import { useRouter } from 'expo-router';
 import Ionicons from '@expo/vector-icons/Ionicons';
+import { SafeContainer } from '@/src/components';
 import { searchPoems, getSearchSuggestions, Poem } from '@/src/database/queries';
 import { PoemCard } from '@/src/components/PoemCard';
 
@@ -167,7 +167,7 @@ export default function PoemSearchScreen() {
   );
 
   return (
-    <SafeAreaView style={styles.container}>
+    <SafeContainer backgroundColor="#FFFFFF">
       {/* 搜索栏 */}
       <View style={styles.searchBarContainer}>
         <Ionicons name="search" size={20} color="#999" />
@@ -304,7 +304,7 @@ export default function PoemSearchScreen() {
           )}
         </>
       ) : null}
-    </SafeAreaView>
+    </SafeContainer>
   );
 }
 

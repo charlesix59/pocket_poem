@@ -4,3 +4,5 @@ export { RandomPoem } from './RandomPoem';
 export { HotPoems } from './HotPoems';
 export { PoemCard } from './PoemCard';
 export { PoemCategory } from './PoemCategory';
+export { SaveButton } from './SaveButton';
+export { SaveToCollectionModal } from './SaveToCollectionModal';

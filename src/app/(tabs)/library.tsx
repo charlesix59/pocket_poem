@@ -1,8 +1,8 @@
-import { RandomPoem, HotPoems, PoemCategory } from '@/src/components';
+import { RandomPoem, HotPoems, PoemCategory, SafeContainer } from '@/src/components';
 import Ionicons from '@expo/vector-icons/Ionicons';
 import { useRouter } from 'expo-router';
 import React, { useState } from 'react';
-import { SafeAreaView, StyleSheet, Text, TouchableOpacity, View } from 'react-native';
+import { StyleSheet, Text, TouchableOpacity, View } from 'react-native';
 
 type TabName = 'random' | 'category' | 'popular';
 
@@ -15,7 +15,7 @@ export default function LibraryScreen() {
   };
 
   return (
-    <SafeAreaView style={styles.container}>
+    <SafeContainer backgroundColor="#FFFFFF">
       {/* 搜索栏 */}
       <TouchableOpacity
         style={styles.searchBarContainer}
@@ -55,7 +55,7 @@ export default function LibraryScreen() {
 
         {activeTab === 'popular' && <HotPoems />}
       </View>
-    </SafeAreaView>
+    </SafeContainer>
   );
 }
 
