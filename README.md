@@ -60,14 +60,15 @@ Join our community of developers creating universal apps.
 - 纳兰词
 
 ## 待完成的内容
-- [ ] 首页 - 每日一句
+- [x] 首页 - 每日一句
 - [ ] tab - 诗库
-- [ ] 搜索栏
+- [x] 搜索栏
 - [ ] tab - 辑录
 - [ ] tab - 设置
 - [ ] 搜索页
-- [ ] 诗词页
-- [ ] 诗词页 - AI解释
+- [x] 诗词页
+  - [ ] 诗词页 - 收藏
+  - [ ] 诗词页 - AI解释
 
 ## AI辅助工作
 1. 技术栈选型 & 项目初始化

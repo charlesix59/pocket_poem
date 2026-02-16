@@ -303,3 +303,22 @@ export async function getHotPoemCount(db: SQLite.SQLiteDatabase) {
     throw error;
   }
 }
+
+/**
+ * 获取所有作者及其作品数量，按作品数从高到低排序
+ */
+export async function getAuthorsWithCount(db: SQLite.SQLiteDatabase) {
+  try {
+    const authors = await db.getAllAsync<{ author: string; count: number }>(
+      `SELECT author, COUNT(*) as count 
+       FROM poems 
+       WHERE author IS NOT NULL AND author != ''
+       GROUP BY author 
+       ORDER BY count DESC, author ASC`
+    );
+    return authors;
+  } catch (error) {
+    console.error('获取作者及作品数失败:', error);
+    throw error;
+  }
+}

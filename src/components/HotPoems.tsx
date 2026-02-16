@@ -77,7 +77,7 @@ export function HotPoems() {
         data={poems}
         keyExtractor={(item) => item.id.toString()}
         renderItem={renderItem}
-        scrollEnabled={false}
+        scrollEnabled={true}
         onEndReached={handleLoadMore}
         onEndReachedThreshold={0.3}
         ListFooterComponent={

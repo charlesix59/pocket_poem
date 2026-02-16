@@ -37,9 +37,7 @@ export function PoemCard({ poem, onPress, numberOfLines }: PoemCardProps) {
 
         {/* 如果内容被截断，显示提示文本 */}
         {contentIsTruncated && (
-          <View style={styles.truncatedOverlay}>
-            <Text style={styles.truncatedText}>点击查看全文</Text>
-          </View>
+          <Text style={styles.truncatedText}>点击查看全文</Text>
         )}
       </View>
     </TouchableOpacity>
@@ -79,20 +77,12 @@ const styles = StyleSheet.create({
     fontSize: 14,
     color: '#555',
     lineHeight: 24,
-    marginBottom: 12,
-  },
-  truncatedOverlay: {
-    position: 'absolute',
-    bottom: 0,
-    right: 0,
-    backgroundColor: 'rgba(255, 255, 255, 0.9)',
-    paddingVertical: 4,
-    paddingHorizontal: 8,
-    borderRadius: 4,
   },
   truncatedText: {
     fontSize: 12,
-    color: '#666',
+    color: '#999',
     fontWeight: '500',
+    marginTop: 8,
+    fontStyle: 'italic',
   },
 });
