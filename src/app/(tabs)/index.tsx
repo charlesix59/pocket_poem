@@ -2,7 +2,7 @@ import { ScrollView, StyleSheet, Text, View, ActivityIndicator, Button, FlatList
 import { useEffect, useState, useCallback } from 'react';
 import { useSQLiteContext } from 'expo-sqlite';
 import { useRouter } from 'expo-router';
-import { SafeContainer } from '@/src/components';
+import { SafeContainer, DailySentence } from '@/src/components';
 import { getAllPoems, type Poem } from '@/src/database/queries';
 import { getStatistics } from '@/src/database/initialization';
 
@@ -39,10 +39,6 @@ export default function HomeScreen() {
   return (
     <SafeContainer backgroundColor="#f5f5f5">
       <ScrollView style={styles.container}>
-      <View style={styles.header}>
-        <Text style={styles.title}>📖 口袋诗词</Text>
-        <Text style={styles.subtitle}>阅读和学习诗词的最佳方式</Text>
-      </View>
 
       {/* 统计信息卡片 */}
       <View style={styles.statsCard}>
@@ -54,11 +50,10 @@ export default function HomeScreen() {
           <Text style={styles.statNumber}>{stats.authors.toLocaleString()}</Text>
           <Text style={styles.statLabel}>作者</Text>
         </View>
-        <View style={styles.statItem}>
-          <Text style={styles.statNumber}>{stats.dynasties}</Text>
-          <Text style={styles.statLabel}>朝代</Text>
-        </View>
       </View>
+
+      {/* 每日一句卡片 */}
+      <DailySentence />
 
       {/* 说明信息 */}
       <View style={styles.infoCard}>
