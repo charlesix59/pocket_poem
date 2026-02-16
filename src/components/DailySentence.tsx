@@ -1,4 +1,5 @@
 import { useSQLiteContext } from 'expo-sqlite';
+import { useRouter } from 'expo-router';
 import React, { useCallback, useEffect, useMemo, useState } from 'react';
 import { ActivityIndicator, StyleSheet, Text, TouchableOpacity, View } from 'react-native';
 import Ionicons from '@expo/vector-icons/Ionicons';
@@ -54,6 +55,7 @@ const generateFibers = (): Fiber[] => {
  */
 export const DailySentence: React.FC<DailySentenceProps> = ({ onRefresh }) => {
   const db = useSQLiteContext();
+  const router = useRouter();
   const [verse, setVerse] = useState<VerseData | null>(null);
   const [loading, setLoading] = useState(false);
 
@@ -98,6 +100,15 @@ export const DailySentence: React.FC<DailySentenceProps> = ({ onRefresh }) => {
     onRefresh?.();
   };
 
+  const handleCardPress = () => {
+    if (verse) {
+      router.push({
+        pathname: '/poem-detail',
+        params: { poemId: verse.id.toString() },
+      });
+    }
+  };
+
 
   // 将文本转换为竖版排列（从右到左）
   const renderVerticalText = (text: string) => {
@@ -119,7 +130,7 @@ export const DailySentence: React.FC<DailySentenceProps> = ({ onRefresh }) => {
   };
 
   return (
-    <View style={styles.container}>
+    <TouchableOpacity style={styles.container} onPress={handleCardPress} activeOpacity={0.95}>
       {/* 宣纸背景 */}
       <View style={styles.paperBackground} />
       {/* 基础纹理层 */}
@@ -195,7 +206,7 @@ export const DailySentence: React.FC<DailySentenceProps> = ({ onRefresh }) => {
         <View style={[styles.cornerDecoration, styles.bottomLeft]} />
         <View style={[styles.cornerDecoration, styles.bottomRight]} />
       </View>
-    </View>
+    </TouchableOpacity>
   );
 };
 
