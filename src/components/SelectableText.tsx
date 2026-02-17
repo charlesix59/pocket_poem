@@ -78,6 +78,14 @@ export const SelectableText: React.FC<SelectableTextProps> = ({
     }
   };
 
+  // 处理文本区域点击 - 关闭菜单并清除选中
+  const handleTextInputPress = () => {
+    if (menuVisible) {
+      setMenuVisible(false);
+      setSelectedText('');
+    }
+  };
+
   const windowWidth = Dimensions.get('window').width;
   const menuWidth = 140;
   let menuLeft = menuPosition.x - menuWidth / 2;
@@ -97,9 +105,22 @@ export const SelectableText: React.FC<SelectableTextProps> = ({
         multiline={true}
         style={[styles.textInput, style]}
         onSelectionChange={handleSelectionChange}
+        onPress={handleTextInputPress}
       />
 
-      {/* 自定义菜单 - 无蒙层 */}
+      {/* 隐形蒙层 - 点击时关闭菜单 */}
+      {menuVisible && (
+        <TouchableOpacity
+          style={styles.invisibleOverlay}
+          onPress={() => {
+            setMenuVisible(false);
+            setSelectedText('');
+          }}
+          activeOpacity={1}
+        />
+      )}
+
+      {/* 自定义菜单 */}
       {menuVisible && (
         <View
           style={[
@@ -141,6 +162,14 @@ const styles = StyleSheet.create({
   textInput: {
     padding: 0,
     margin: 0,
+  },
+  invisibleOverlay: {
+    position: 'absolute',
+    top: 0,
+    left: 0,
+    right: 0,
+    bottom: 0,
+    zIndex: 999,
   },
   menuAbsolute: {
     position: 'absolute',

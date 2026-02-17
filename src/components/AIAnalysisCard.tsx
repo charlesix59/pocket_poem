@@ -4,9 +4,10 @@
  */
 
 import { IconSymbol } from '@/components/ui/icon-symbol';
+import { MarkdownContent } from './MarkdownContent';
 import { callAI } from '@/src/services/aiService';
 import { AIMessage } from '@/src/types/ai';
-import React, { forwardRef, useCallback, useImperativeHandle, useState } from 'react';
+import React, { forwardRef, useCallback, useEffect, useImperativeHandle, useState } from 'react';
 import { ActivityIndicator, Alert, StyleSheet, Text, TouchableOpacity, View } from 'react-native';
 
 export interface AIAnalysisCardProps {
@@ -23,7 +24,7 @@ function AIAnalysisCardComponent(
   { poemTitle, poemContent, analysisType }: AIAnalysisCardProps,
   ref: React.Ref<AIAnalysisCardRef>,
 ) {
-  const [isExpanded, setIsExpanded] = useState(false);
+  const [isExpanded, setIsExpanded] = useState(true);  // 默认展开
   const [analysis, setAnalysis] = useState<string>('');
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string>('');
@@ -32,12 +33,12 @@ function AIAnalysisCardComponent(
   const icon = analysisType === 'explanation' ? '🤖' : '🎭';
   const prompt =
     analysisType === 'explanation'
-      ? `请对以下古诗进行详细的解释，包括诗的含义、词语解释、表达的意境等。
+      ? `请讲下面的诗词翻译成现代汉语，注意用词妥帖符合原意
 
 诗名：${poemTitle}
 诗文：${poemContent}
 
-请用清晰易懂的语言进行解释。`
+不需要多余的解释，只输出翻译成现代汉语后的结果`
       : `请对以下古诗进行赏析，包括艺术表现、修辞手法、思想内涵、审美价值等。
 
 诗名：${poemTitle}
@@ -45,23 +46,12 @@ function AIAnalysisCardComponent(
 
 请用专业的文学评论角度进行赏析。`;
 
-  // 展开卡片并获取分析
-  const handleToggle = useCallback(async () => {
-    if (isExpanded) {
-      // 如果已展开，直接关闭
-      setIsExpanded(false);
-    } else {
-      // 如果已有分析结果，直接展开
-      if (analysis) {
-        setIsExpanded(true);
-      } else {
-        // 否则获取分析
-        await fetchAnalysis();
-      }
-    }
-  }, [isExpanded, analysis]);
+  // 切换卡片展开/收起
+  const handleToggle = useCallback(() => {
+    setIsExpanded(!isExpanded);
+  }, [isExpanded]);
 
-  const fetchAnalysis = async () => {
+  const fetchAnalysis = useCallback(async () => {
     setLoading(true);
     setError('');
     try {
@@ -74,7 +64,6 @@ function AIAnalysisCardComponent(
 
       const response = await callAI(messages);
       setAnalysis(response.content);
-      setIsExpanded(true);
     } catch (err) {
       const errorMessage = err instanceof Error ? err.message : '未知错误';
       setError(errorMessage);
@@ -83,31 +72,37 @@ function AIAnalysisCardComponent(
     } finally {
       setLoading(false);
     }
-  };
+  }, [title, prompt]);
 
-  const handleRetry = async () => {
+  const handleRetry = useCallback(async () => {
     await fetchAnalysis();
-  };
+  }, [fetchAnalysis]);
 
-  const handleRegenerate = async () => {
+  const handleRegenerate = useCallback(async () => {
     setAnalysis('');
     setError('');
     await fetchAnalysis();
-  };
+  }, [fetchAnalysis]);
 
-  // 暴露 expand 方法供父组件调用
+  // 组件挂载时自动加载分析
+  useEffect(() => {
+    if (!analysis && !loading && !error) {
+      fetchAnalysis();
+    }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, []); // 仅在组件挂载时执行一次
+
+  // 暴露 expand 方法供父组件调用 - 触发加载分析
   useImperativeHandle(
     ref,
     () => ({
       expand: () => {
-        if (analysis) {
-          setIsExpanded(true);
-        } else {
+        if (!analysis) {
           fetchAnalysis();
         }
       },
     }),
-    [analysis],
+    [analysis, fetchAnalysis],
   );
 
   return (
@@ -115,8 +110,7 @@ function AIAnalysisCardComponent(
       {/* 卡片头部 - 点击展开/收起 */}
       <TouchableOpacity
         style={styles.cardHeader}
-        onPress={handleToggle}
-        disabled={loading && !analysis}>
+        onPress={handleToggle}>
         <View style={styles.headerLeft}>
           <Text style={styles.cardTitle}>
             {icon} {title}
@@ -153,7 +147,7 @@ function AIAnalysisCardComponent(
           ) : analysis ? (
             // 成功状态 - 显示分析内容
             <View style={styles.analysisContainer}>
-              <Text style={styles.analysisText}>{analysis}</Text>
+              <MarkdownContent content={analysis} />
 
               {/* 底部按钮 */}
               <View style={styles.bottomActions}>
@@ -258,12 +252,6 @@ const styles = StyleSheet.create({
   },
   analysisContainer: {
     minHeight: 80,
-  },
-  analysisText: {
-    fontSize: 14,
-    lineHeight: 24,
-    color: '#333',
-    marginBottom: 12,
   },
   bottomActions: {
     flexDirection: 'row',

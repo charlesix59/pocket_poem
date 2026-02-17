@@ -19,6 +19,7 @@ import {
 } from 'react-native';
 import { IconSymbol } from '@/components/ui/icon-symbol';
 import { PPButton } from './PPButton';
+import { MarkdownContent } from './MarkdownContent';
 
 export interface AskAIPopupProps {
   visible: boolean;
@@ -201,7 +202,7 @@ export const AskAIPopup: React.FC<AskAIPopupProps> = ({
              {aiResponse && (
                <View style={styles.aiResponseContainer}>
                  <View style={styles.aiMessageBox}>
-                   <Text style={styles.aiResponseText}>{aiResponse}</Text>
+                   <MarkdownContent content={aiResponse} />
                  </View>
                </View>
              )}

@@ -11,3 +11,4 @@ export { AIAnalysisCard } from './AIAnalysisCard';
 export { PPButton } from './PPButton';
 export { SelectableText } from './SelectableText';
 export { AskAIPopup } from './AskAIPopup';
+export { MarkdownContent, markdownStyles } from './MarkdownContent';
