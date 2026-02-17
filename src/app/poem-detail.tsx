@@ -1,9 +1,16 @@
-import { useLocalSearchParams, useFocusEffect } from 'expo-router';
-import { useSQLiteContext } from 'expo-sqlite';
-import React, { useEffect, useState, useCallback, useRef } from 'react';
-import { ActivityIndicator, Alert, ScrollView, StyleSheet, Text, View, TouchableOpacity } from 'react-native';
-import { SaveButton, SaveToCollectionModal, SafeContainer, AIAnalysisCard } from '@/src/components';
+import { AIAnalysisCard, PPButton, SafeContainer, SaveButton, SaveToCollectionModal } from '@/src/components';
 import { isAnyCollected } from '@/src/database/queries';
+import { useFocusEffect, useLocalSearchParams } from 'expo-router';
+import { useSQLiteContext } from 'expo-sqlite';
+import React, { useCallback, useEffect, useRef, useState } from 'react';
+import {
+  ActivityIndicator,
+  Alert,
+  ScrollView,
+  StyleSheet,
+  Text,
+  View,
+} from 'react-native';
 
 interface PoemData {
   id: number;
@@ -20,7 +27,7 @@ export default function PoemDetailScreen() {
   const [loading, setLoading] = useState(true);
   const [showSaveModal, setShowSaveModal] = useState(false);
   const [isCollected, setIsCollected] = useState(false);
-  
+
   // AI 卡片的 ref 和显示状态
   const explanationCardRef = useRef<any>(null);
   const appreciationCardRef = useRef<any>(null);
@@ -74,33 +81,28 @@ export default function PoemDetailScreen() {
   useFocusEffect(
     useCallback(() => {
       checkCollectionStatus();
-    }, [checkCollectionStatus])
+    }, [checkCollectionStatus]),
   );
 
   // 处理收藏按钮点击
   const handleSaveButtonPress = useCallback(async () => {
     if (isCollected) {
       // 已收藏，显示取消选项
-      Alert.alert(
-        '取消收藏',
-        '请选择要从哪个收藏夹中移除此诗词',
-        [
-          {
-            text: '取消',
-            style: 'cancel',
-          },
-          {
-            text: '查看并管理',
-            onPress: () => setShowSaveModal(true),
-          },
-        ]
-      );
+      Alert.alert('取消收藏', '请选择要从哪个收藏夹中移除此诗词', [
+        {
+          text: '取消',
+          style: 'cancel',
+        },
+        {
+          text: '查看并管理',
+          onPress: () => setShowSaveModal(true),
+        },
+      ]);
     } else {
       // 未收藏，打开 Modal 添加收藏
       setShowSaveModal(true);
     }
   }, [isCollected]);
-
 
   if (loading) {
     return (
@@ -144,33 +146,37 @@ export default function PoemDetailScreen() {
         {/* 诗词内容和收藏按钮 */}
         <View style={styles.contentWrapper}>
           <Text style={styles.content}>{poem.content}</Text>
-          
+
           {/* AI 标签和收藏按钮 */}
           <View style={styles.actionContainer}>
             {/* AI 解释标签 */}
-            <TouchableOpacity 
-              style={styles.aiTag}
+            <PPButton
+              text="🤖 AI解释"
+              backgroundColor="#F0F0F0"
+              borderColor="#E0E0E0"
+              textColor="#666"
+              size="small"
               onPress={() => {
                 setShowExplanationCard(true);
                 explanationCardRef.current?.expand();
               }}
-            >
-              <Text style={styles.aiTagText}>🤖 AI解释</Text>
-            </TouchableOpacity>
+            />
 
             {/* AI 赏析标签 */}
-            <TouchableOpacity 
-              style={styles.aiTag}
+            <PPButton
+              text="🎭 AI赏析"
+              backgroundColor="#F0F0F0"
+              borderColor="#E0E0E0"
+              textColor="#666"
+              size="small"
               onPress={() => {
                 setShowAppreciationCard(true);
                 appreciationCardRef.current?.expand();
               }}
-            >
-              <Text style={styles.aiTagText}>🎭 AI赏析</Text>
-            </TouchableOpacity>
+            />
 
             {/* 右下角收藏按钮 */}
-            <SaveButton 
+            <SaveButton
               onPress={handleSaveButtonPress}
               size="small"
               style={styles.saveButtonTag}
@@ -260,6 +266,7 @@ const styles = StyleSheet.create({
     lineHeight: 32,
     color: '#333',
     letterSpacing: 0.2,
+    textAlign: 'center',
   },
   errorText: {
     fontSize: 16,
@@ -272,19 +279,6 @@ const styles = StyleSheet.create({
     alignItems: 'center',
     gap: 10,
     justifyContent: 'flex-end',
-  },
-  aiTag: {
-    paddingHorizontal: 12,
-    paddingVertical: 6,
-    backgroundColor: '#F0F0F0',
-    borderRadius: 16,
-    borderWidth: 1,
-    borderColor: '#E0E0E0',
-  },
-  aiTagText: {
-    fontSize: 12,
-    fontWeight: '500',
-    color: '#666',
   },
   saveButtonTag: {
     marginTop: 0,
