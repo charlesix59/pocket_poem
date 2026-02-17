@@ -16,6 +16,9 @@ import {
   addPoemToCollection,
   createCollection,
   getAllCollections,
+  getCollectionsForPoem,
+  removePoemFromCollection,
+  isCollected,
 } from '@/src/database/queries';
 
 export interface SaveToCollectionModalProps {
@@ -44,6 +47,7 @@ export function SaveToCollectionModal({
   const [showNewCollection, setShowNewCollection] = useState(false);
   const [newCollectionName, setNewCollectionName] = useState('');
   const [saving, setSaving] = useState(false);
+  const [collectedIds, setCollectedIds] = useState<number[]>([]);
 
   // 加载收藏夹列表
   useEffect(() => {
@@ -56,8 +60,13 @@ export function SaveToCollectionModal({
     if (!db) return;
     setLoading(true);
     try {
-      const result = await getAllCollections(db);
-      setCollections(result);
+      const [allCollections, collected] = await Promise.all([
+        getAllCollections(db),
+        getCollectionsForPoem(db, poemId),
+      ]);
+      setCollections(allCollections);
+      // 记录已收藏的收藏夹 ID
+      setCollectedIds(collected.map(c => c.id));
     } catch (error: any) {
       console.error('加载收藏夹失败:', error);
       
@@ -127,17 +136,26 @@ export function SaveToCollectionModal({
 
     setSaving(true);
     try {
-      await addPoemToCollection(db, collectionId, poemId);
-      Alert.alert('成功', '诗词已保存到收藏夹');
+      const isCurrentlyCollected = collectedIds.includes(collectionId);
+      
+      if (isCurrentlyCollected) {
+        // 取消收藏
+        await removePoemFromCollection(db, collectionId, poemId);
+        setCollectedIds(collectedIds.filter(id => id !== collectionId));
+        Alert.alert('成功', '已从收藏夹中移除');
+      } else {
+        // 添加收藏
+        await addPoemToCollection(db, collectionId, poemId);
+        setCollectedIds([...collectedIds, collectionId]);
+        Alert.alert('成功', '诗词已保存到收藏夹');
+      }
       
       if (onSave) {
         onSave();
       }
-      
-      onClose();
     } catch (error) {
-      Alert.alert('错误', '保存失败');
-      console.error('保存失败:', error);
+      Alert.alert('错误', '操作失败');
+      console.error('操作失败:', error);
     } finally {
       setSaving(false);
     }
@@ -218,23 +236,34 @@ export function SaveToCollectionModal({
           <FlatList
             data={collections}
             keyExtractor={(item) => item.id.toString()}
-            renderItem={({ item }) => (
-              <TouchableOpacity
-                style={styles.collectionItem}
-                onPress={() => handleSelectCollection(item.id)}
-                disabled={saving}
-              >
-                <View style={styles.collectionContent}>
-                  <Text style={styles.collectionName}>{item.name}</Text>
-                  {item.is_default === 1 && (
-                    <Text style={styles.defaultBadge}>默认</Text>
+            renderItem={({ item }) => {
+              const isInCollection = collectedIds.includes(item.id);
+              return (
+                <TouchableOpacity
+                  style={[
+                    styles.collectionItem,
+                    isInCollection && styles.collectionItemSelected,
+                  ]}
+                  onPress={() => handleSelectCollection(item.id)}
+                  disabled={saving}
+                >
+                  <View style={styles.collectionContent}>
+                    <Text style={styles.collectionName}>{item.name}</Text>
+                    <View style={styles.collectionBadges}>
+                      {isInCollection && (
+                        <Text style={styles.selectedBadge}>✓ 已收藏</Text>
+                      )}
+                      {item.is_default === 1 && (
+                        <Text style={styles.defaultBadge}>默认</Text>
+                      )}
+                    </View>
+                  </View>
+                  {item.description && (
+                    <Text style={styles.collectionDescription}>{item.description}</Text>
                   )}
-                </View>
-                {item.description && (
-                  <Text style={styles.collectionDescription}>{item.description}</Text>
-                )}
-              </TouchableOpacity>
-            )}
+                </TouchableOpacity>
+              );
+            }}
             contentContainerStyle={styles.listContent}
           />
         )}
@@ -363,17 +392,36 @@ const styles = StyleSheet.create({
     borderLeftWidth: 4,
     borderLeftColor: '#007AFF',
   },
+  collectionItemSelected: {
+    backgroundColor: '#E8F5FF',
+    borderLeftColor: '#34C759',
+  },
   collectionContent: {
     flexDirection: 'row',
     alignItems: 'center',
     justifyContent: 'space-between',
     marginBottom: 4,
   },
+  collectionBadges: {
+    flexDirection: 'row',
+    gap: 6,
+    alignItems: 'center',
+  },
   collectionName: {
     fontSize: 16,
     fontWeight: '600',
     color: '#333',
     flex: 1,
+  },
+  selectedBadge: {
+    fontSize: 12,
+    fontWeight: '600',
+    color: '#FFFFFF',
+    backgroundColor: '#34C759',
+    paddingHorizontal: 8,
+    paddingVertical: 2,
+    borderRadius: 4,
+    overflow: 'hidden',
   },
   defaultBadge: {
     fontSize: 12,

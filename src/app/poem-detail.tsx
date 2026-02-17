@@ -1,8 +1,9 @@
-import { useLocalSearchParams } from 'expo-router';
+import { useLocalSearchParams, useFocusEffect } from 'expo-router';
 import { useSQLiteContext } from 'expo-sqlite';
-import React, { useEffect, useState } from 'react';
-import { ActivityIndicator, ScrollView, StyleSheet, Text, View } from 'react-native';
+import React, { useEffect, useState, useCallback } from 'react';
+import { ActivityIndicator, Alert, ScrollView, StyleSheet, Text, View } from 'react-native';
 import { SaveButton, SaveToCollectionModal, SafeContainer } from '@/src/components';
+import { isAnyCollected, getCollectionsForPoem, removePoemFromCollection } from '@/src/database/queries';
 
 interface PoemData {
   id: number;
@@ -18,6 +19,18 @@ export default function PoemDetailScreen() {
   const [poem, setPoem] = useState<PoemData | null>(null);
   const [loading, setLoading] = useState(true);
   const [showSaveModal, setShowSaveModal] = useState(false);
+  const [isCollected, setIsCollected] = useState(false);
+
+  // 检查诗词是否已收藏
+  const checkCollectionStatus = useCallback(async () => {
+    if (!db || !poemId) return;
+    try {
+      const collected = await isAnyCollected(db, parseInt(poemId, 10));
+      setIsCollected(collected);
+    } catch (error) {
+      console.error('检查收藏状态失败:', error);
+    }
+  }, [db, poemId]);
 
   useEffect(() => {
     const fetchPoemDetail = async () => {
@@ -48,7 +61,39 @@ export default function PoemDetailScreen() {
     };
 
     fetchPoemDetail();
-  }, [db, poemId]);
+    checkCollectionStatus();
+  }, [db, poemId, checkCollectionStatus]);
+
+  // 在页面获得焦点时检查收藏状态（Modal 关闭后）
+  useFocusEffect(
+    useCallback(() => {
+      checkCollectionStatus();
+    }, [checkCollectionStatus])
+  );
+
+  // 处理收藏按钮点击
+  const handleSaveButtonPress = useCallback(async () => {
+    if (isCollected) {
+      // 已收藏，显示取消选项
+      Alert.alert(
+        '取消收藏',
+        '请选择要从哪个收藏夹中移除此诗词',
+        [
+          {
+            text: '取消',
+            style: 'cancel',
+          },
+          {
+            text: '查看并管理',
+            onPress: () => setShowSaveModal(true),
+          },
+        ]
+      );
+    } else {
+      // 未收藏，打开 Modal 添加收藏
+      setShowSaveModal(true);
+    }
+  }, [isCollected]);
 
   if (loading) {
     return (
@@ -89,25 +134,29 @@ export default function PoemDetailScreen() {
           )}
         </View>
 
-        {/* 诗词内容 */}
-        <View style={styles.contentSection}>
+        {/* 诗词内容和收藏按钮 */}
+        <View style={styles.contentWrapper}>
           <Text style={styles.content}>{poem.content}</Text>
+          {/* 右下角收藏按钮 */}
+          <SaveButton 
+            onPress={handleSaveButtonPress}
+            size="small"
+            style={styles.saveButtonTag}
+            isCollected={isCollected}
+          />
         </View>
       </ScrollView>
-
-      {/* 底部收藏按钮 */}
-      <View style={styles.bottomButtonContainer}>
-        <SaveButton 
-          onPress={() => setShowSaveModal(true)}
-          style={styles.saveButton}
-        />
-      </View>
 
       {/* 选择收藏夹 Modal */}
       <SaveToCollectionModal
         visible={showSaveModal}
         poemId={poem.id}
-        onClose={() => setShowSaveModal(false)}
+        onClose={() => {
+          setShowSaveModal(false);
+          // Modal 关闭后重新检查收藏状态
+          checkCollectionStatus();
+        }}
+        onSave={checkCollectionStatus}
       />
     </SafeContainer>
   );
@@ -149,8 +198,9 @@ const styles = StyleSheet.create({
     fontStyle: 'italic',
     letterSpacing: 0.3,
   },
-  contentSection: {
+  contentWrapper: {
     marginBottom: 20,
+    position: 'relative',
   },
   content: {
     fontSize: 17,
@@ -163,14 +213,8 @@ const styles = StyleSheet.create({
     color: '#999',
     textAlign: 'center',
   },
-  bottomButtonContainer: {
-    paddingHorizontal: 20,
-    paddingVertical: 16,
-    borderTopWidth: 1,
-    borderTopColor: '#F0F0F0',
-    backgroundColor: '#FFFFFF',
-  },
-  saveButton: {
-    width: '100%',
+  saveButtonTag: {
+    marginTop: 12,
+    alignSelf: 'flex-end',
   },
 });

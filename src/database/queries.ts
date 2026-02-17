@@ -429,7 +429,7 @@ export async function addPoemToCollection(
 }
 
 /**
- * 检查诗词是否已在收藏夹中
+ * 检查诗词是否已在某个收藏夹中
  */
 export async function isCollected(
   db: SQLite.SQLiteDatabase,
@@ -444,6 +444,47 @@ export async function isCollected(
     return (result?.count || 0) > 0;
   } catch (error) {
     console.error('检查收藏状态失败:', error);
+    throw error;
+  }
+}
+
+/**
+ * 快速检查诗词是否在任何收藏夹中（不需要指定收藏夹ID）
+ */
+export async function isAnyCollected(
+  db: SQLite.SQLiteDatabase,
+  poemId: number
+) {
+  try {
+    const result = await db.getFirstAsync<{ count: number }>(
+      `SELECT COUNT(*) as count FROM collection_items WHERE poem_id = ?`,
+      [poemId]
+    );
+    return (result?.count || 0) > 0;
+  } catch (error) {
+    console.error('检查收藏状态失败:', error);
+    throw error;
+  }
+}
+
+/**
+ * 获取诗词已收藏的收藏夹列表（包含收藏夹ID和名称）
+ */
+export async function getCollectionsForPoem(
+  db: SQLite.SQLiteDatabase,
+  poemId: number
+) {
+  try {
+    const result = await db.getAllAsync<{ id: number; name: string; is_default: number }>(
+      `SELECT c.id, c.name, c.is_default FROM collections c
+       INNER JOIN collection_items ci ON c.id = ci.collection_id
+       WHERE ci.poem_id = ?
+       ORDER BY c.is_default DESC, c.name ASC`,
+      [poemId]
+    );
+    return result || [];
+  } catch (error) {
+    console.error('获取诗词的收藏夹列表失败:', error);
     throw error;
   }
 }

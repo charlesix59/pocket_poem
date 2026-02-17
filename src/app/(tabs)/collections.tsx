@@ -102,13 +102,37 @@ export default function CollectionsScreen() {
     }
   }, [db, loadCollections]);
 
-  // 监听页面焦点，刷新数据
+  // 监听页面焦点，刷新收藏夹列表和诗词
   useFocusEffect(
     useCallback(() => {
-      if (db && selectedCollection) {
-        loadCollectionPoems(selectedCollection, 0);
-      }
-    }, [db, selectedCollection, loadCollectionPoems])
+      if (!db) return;
+      
+      // 刷新收藏夹列表（包括每个收藏夹的诗词计数）
+      const refreshData = async () => {
+        try {
+          const result = await getAllCollections(db);
+          const collectionsWithCount = await Promise.all(
+            result.map(async (collection) => {
+              const count = await getCollectionPoemCount(db, collection.id);
+              return { ...collection, poemCount: count };
+            })
+          );
+          setCollections(collectionsWithCount);
+          
+          // 如果有选中的收藏夹，也刷新其诗词
+          if (selectedCollection !== null) {
+            const poems = await getCollectionPoems(db, selectedCollection, PAGE_SIZE, 0);
+            setCollectionPoems(poems);
+            setHasMorePoems(poems.length === PAGE_SIZE);
+            setPoemsPage(0);
+          }
+        } catch (error) {
+          console.error('刷新数据失败:', error);
+        }
+      };
+      
+      refreshData();
+    }, [db, selectedCollection])
   );
 
   // 选择收藏夹时加载其诗词
