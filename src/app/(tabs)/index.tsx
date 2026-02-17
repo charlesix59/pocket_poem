@@ -1,4 +1,4 @@
-import { ScrollView, StyleSheet, Text, View, ActivityIndicator, Button, FlatList } from 'react-native';
+import { ScrollView, StyleSheet, Text, View, ActivityIndicator, Button, FlatList, TouchableOpacity } from 'react-native';
 import { useEffect, useState, useCallback } from 'react';
 import { useSQLiteContext } from 'expo-sqlite';
 import { useRouter } from 'expo-router';
@@ -60,6 +60,9 @@ export default function HomeScreen() {
         <Text style={styles.infoTitle}>✨ 数据库已加载</Text>
         <Text style={styles.infoText}>包含 287,555+ 首诗词、词、曲等经典文献</Text>
         <View style={styles.buttonGroup}>
+          <View style={styles.buttonWrapper}>
+            <Button title="🤖 AI 助手" onPress={() => router.push('/ai-chat' as any)} />
+          </View>
           <View style={styles.buttonWrapper}>
             <Button title="🚀 诗词 Demo" onPress={() => router.push('/demo' as any)} />
           </View>

@@ -1,9 +1,9 @@
 import { useLocalSearchParams, useFocusEffect } from 'expo-router';
 import { useSQLiteContext } from 'expo-sqlite';
-import React, { useEffect, useState, useCallback } from 'react';
-import { ActivityIndicator, Alert, ScrollView, StyleSheet, Text, View } from 'react-native';
-import { SaveButton, SaveToCollectionModal, SafeContainer } from '@/src/components';
-import { isAnyCollected, getCollectionsForPoem, removePoemFromCollection } from '@/src/database/queries';
+import React, { useEffect, useState, useCallback, useRef } from 'react';
+import { ActivityIndicator, Alert, ScrollView, StyleSheet, Text, View, TouchableOpacity } from 'react-native';
+import { SaveButton, SaveToCollectionModal, SafeContainer, AIAnalysisCard } from '@/src/components';
+import { isAnyCollected } from '@/src/database/queries';
 
 interface PoemData {
   id: number;
@@ -20,6 +20,12 @@ export default function PoemDetailScreen() {
   const [loading, setLoading] = useState(true);
   const [showSaveModal, setShowSaveModal] = useState(false);
   const [isCollected, setIsCollected] = useState(false);
+  
+  // AI 卡片的 ref 和显示状态
+  const explanationCardRef = useRef<any>(null);
+  const appreciationCardRef = useRef<any>(null);
+  const [showExplanationCard, setShowExplanationCard] = useState(false);
+  const [showAppreciationCard, setShowAppreciationCard] = useState(false);
 
   // 检查诗词是否已收藏
   const checkCollectionStatus = useCallback(async () => {
@@ -95,6 +101,7 @@ export default function PoemDetailScreen() {
     }
   }, [isCollected]);
 
+
   if (loading) {
     return (
       <SafeContainer backgroundColor="#FFFFFF">
@@ -137,13 +144,59 @@ export default function PoemDetailScreen() {
         {/* 诗词内容和收藏按钮 */}
         <View style={styles.contentWrapper}>
           <Text style={styles.content}>{poem.content}</Text>
-          {/* 右下角收藏按钮 */}
-          <SaveButton 
-            onPress={handleSaveButtonPress}
-            size="small"
-            style={styles.saveButtonTag}
-            isCollected={isCollected}
-          />
+          
+          {/* AI 标签和收藏按钮 */}
+          <View style={styles.actionContainer}>
+            {/* AI 解释标签 */}
+            <TouchableOpacity 
+              style={styles.aiTag}
+              onPress={() => {
+                setShowExplanationCard(true);
+                explanationCardRef.current?.expand();
+              }}
+            >
+              <Text style={styles.aiTagText}>🤖 AI解释</Text>
+            </TouchableOpacity>
+
+            {/* AI 赏析标签 */}
+            <TouchableOpacity 
+              style={styles.aiTag}
+              onPress={() => {
+                setShowAppreciationCard(true);
+                appreciationCardRef.current?.expand();
+              }}
+            >
+              <Text style={styles.aiTagText}>🎭 AI赏析</Text>
+            </TouchableOpacity>
+
+            {/* 右下角收藏按钮 */}
+            <SaveButton 
+              onPress={handleSaveButtonPress}
+              size="small"
+              style={styles.saveButtonTag}
+              isCollected={isCollected}
+            />
+          </View>
+        </View>
+
+        {/* AI 分析卡片 - 只在点击后显示 */}
+        <View style={styles.analysisCardsContainer}>
+          {showExplanationCard && (
+            <AIAnalysisCard
+              ref={explanationCardRef}
+              poemTitle={poem.title}
+              poemContent={poem.content}
+              analysisType="explanation"
+            />
+          )}
+          {showAppreciationCard && (
+            <AIAnalysisCard
+              ref={appreciationCardRef}
+              poemTitle={poem.title}
+              poemContent={poem.content}
+              analysisType="appreciation"
+            />
+          )}
         </View>
       </ScrollView>
 
@@ -213,8 +266,32 @@ const styles = StyleSheet.create({
     color: '#999',
     textAlign: 'center',
   },
+  actionContainer: {
+    marginTop: 16,
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 10,
+    justifyContent: 'flex-end',
+  },
+  aiTag: {
+    paddingHorizontal: 12,
+    paddingVertical: 6,
+    backgroundColor: '#F0F0F0',
+    borderRadius: 16,
+    borderWidth: 1,
+    borderColor: '#E0E0E0',
+  },
+  aiTagText: {
+    fontSize: 12,
+    fontWeight: '500',
+    color: '#666',
+  },
   saveButtonTag: {
-    marginTop: 12,
-    alignSelf: 'flex-end',
+    marginTop: 0,
+  },
+  analysisCardsContainer: {
+    marginTop: 8,
+    gap: 4,
+    paddingBottom: 20,
   },
 });

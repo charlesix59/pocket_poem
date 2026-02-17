@@ -51,6 +51,14 @@ export default function RootLayout() {
                 headerBackTitle: '返回'
               }} 
             />
+            <Stack.Screen 
+              name="ai-chat" 
+              options={{ 
+                title: '诗词助手',
+                headerShown: true,
+                headerBackTitle: '返回'
+              }} 
+            />
             <Stack.Screen name="demo" options={{ title: '诗词 Demo', headerShown: true }} />
             <Stack.Screen name="font-demo" options={{ title: '字体 Demo', headerShown: true }} />
             <Stack.Screen name="modal" options={{ presentation: 'modal', title: 'Modal' }} />
