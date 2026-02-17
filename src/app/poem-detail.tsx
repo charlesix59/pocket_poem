@@ -1,16 +1,19 @@
-import { AIAnalysisCard, PPButton, SafeContainer, SaveButton, SaveToCollectionModal } from '@/src/components';
+import {
+  AIAnalysisCard,
+  AskAIPopup,
+  PPButton,
+  SafeContainer,
+  SaveButton,
+  SaveToCollectionModal,
+  SelectableText,
+} from '@/src/components';
 import { isAnyCollected } from '@/src/database/queries';
+import { callAI } from '@/src/services/aiService';
+import { AIMessage } from '@/src/types/ai';
 import { useFocusEffect, useLocalSearchParams } from 'expo-router';
 import { useSQLiteContext } from 'expo-sqlite';
 import React, { useCallback, useEffect, useRef, useState } from 'react';
-import {
-  ActivityIndicator,
-  Alert,
-  ScrollView,
-  StyleSheet,
-  Text,
-  View,
-} from 'react-native';
+import { ActivityIndicator, Alert, ScrollView, StyleSheet, Text, View } from 'react-native';
 
 interface PoemData {
   id: number;
@@ -33,6 +36,10 @@ export default function PoemDetailScreen() {
   const appreciationCardRef = useRef<any>(null);
   const [showExplanationCard, setShowExplanationCard] = useState(false);
   const [showAppreciationCard, setShowAppreciationCard] = useState(false);
+
+  // 提问 AI 弹窗的状态
+  const [showAskAIPopup, setShowAskAIPopup] = useState(false);
+  const [selectedTextForAI, setSelectedTextForAI] = useState('');
 
   // 检查诗词是否已收藏
   const checkCollectionStatus = useCallback(async () => {
@@ -104,6 +111,44 @@ export default function PoemDetailScreen() {
     }
   }, [isCollected]);
 
+  // 处理选中文本后的"问 AI"功能
+  const handleAskSelectedText = useCallback((selectedText: string) => {
+    setSelectedTextForAI(selectedText);
+    setShowAskAIPopup(true);
+  }, []);
+
+  // 处理 AI 提问提交
+  const handleAskAISubmit = useCallback(
+    async (question: string, includeContext: boolean): Promise<string> => {
+      try {
+        // 构建提示词 - 选中文本始终包含
+        let promptContent = `关于以下选中的诗词片段，用户有以下疑问：\n\n选中内容：\n${selectedTextForAI}\n\n用户问题：${question}`;
+
+        // 如果包含全文上下文，添加完整诗词信息
+        if (includeContext && poem) {
+          promptContent = `诗词标题：${poem.title}\n诗词作者：${poem.author || '未知'}\n\n完整诗词内容：\n${poem.content}\n\n用户在以下片段上提出疑问：\n${selectedTextForAI}\n\n用户问题：${question}`;
+        }
+
+        // 调用 AI API
+        const messages: AIMessage[] = [
+          {
+            role: 'user',
+            content: promptContent,
+          },
+        ];
+
+        const response = await callAI(messages);
+
+        // 返回 AI 的回答内容
+        return response.content;
+      } catch (error) {
+        console.error('提问 AI 失败:', error);
+        throw error;
+      }
+    },
+    [poem, selectedTextForAI],
+  );
+
   if (loading) {
     return (
       <SafeContainer backgroundColor="#FFFFFF">
@@ -145,7 +190,11 @@ export default function PoemDetailScreen() {
 
         {/* 诗词内容和收藏按钮 */}
         <View style={styles.contentWrapper}>
-          <Text style={styles.content}>{poem.content}</Text>
+          <SelectableText
+            text={poem.content}
+            style={styles.content}
+            onAsk={handleAskSelectedText}
+          />
 
           {/* AI 标签和收藏按钮 */}
           <View style={styles.actionContainer}>
@@ -217,6 +266,19 @@ export default function PoemDetailScreen() {
         }}
         onSave={checkCollectionStatus}
       />
+
+      {/* 提问 AI 弹窗 */}
+      {poem && (
+        <AskAIPopup
+          visible={showAskAIPopup}
+          selectedText={selectedTextForAI}
+          fullText={poem.content}
+          poemTitle={poem.title}
+          poemAuthor={poem.author}
+          onClose={() => setShowAskAIPopup(false)}
+          onSubmit={handleAskAISubmit}
+        />
+      )}
     </SafeContainer>
   );
 }
