@@ -213,7 +213,6 @@ export const DailySentence: React.FC<DailySentenceProps> = ({ onRefresh }) => {
                 {verse.author && (
                   <Text style={styles.verseAuthor}>
                     {verse.author}
-                    {verse.dynasty && ` · ${verse.dynasty}`}
                   </Text>
                 )}
               </View>

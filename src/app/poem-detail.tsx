@@ -178,12 +178,11 @@ export default function PoemDetailScreen() {
         {/* 标题 */}
         <Text style={styles.title}>{poem.title}</Text>
 
-        {/* 作者和朝代 */}
+        {/* 作者 */}
         <View style={styles.metaSection}>
           {poem.author && (
             <Text style={styles.author}>
               {poem.author}
-              {poem.dynasty && ` · ${poem.dynasty}`}
             </Text>
           )}
         </View>

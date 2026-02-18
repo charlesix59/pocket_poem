@@ -26,7 +26,7 @@ export function PoemCard({ poem, onPress, numberOfLines }: PoemCardProps) {
 
       {poem.author && (
         <Text style={styles.poemAuthor}>
-          作者: {poem.author} {poem.dynasty && `(${poem.dynasty})`}
+          作者: {poem.author}
         </Text>
       )}
 
