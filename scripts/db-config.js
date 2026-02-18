@@ -1,3 +1,4 @@
+/* eslint-disable no-undef */
 /**
  * 数据库配置文件
  * 定义所有数据源，方便添加新的诗词数据
@@ -15,11 +16,11 @@ const POEMS_DIR = path.join(__dirname, '../lib/poems');
 function generateDataSources() {
   const sources = [];
 
-  // 配置 1: 唐诗数据 (仅加载简体版本 poet.song.*.simplified.json)
+  // 配置 1: 唐诗数据 (仅加载简体版本 poet.tang.*.simplified.json)
   const tangshiDir = path.join(POEMS_DIR, '全唐诗');
   if (fs.existsSync(tangshiDir)) {
     const tangshiFiles = fs.readdirSync(tangshiDir)
-      .filter(f => f.startsWith('poet.song.') && f.includes('simplified') && f.endsWith('.json'))
+      .filter(f => f.startsWith('poet.tang.') && f.includes('simplified') && f.endsWith('.json'))
       .sort((a, b) => {
         const aNum = parseInt(a.match(/\d+/)[0]);
         const bNum = parseInt(b.match(/\d+/)[0]);
@@ -33,6 +34,28 @@ function generateDataSources() {
         path: path.join(tangshiDir, file),
         dynasty: '唐',
         processor: 'processTangshi'
+      });
+    });
+  }
+
+  // 配置 1.5: 宋词数据 (从全唐诗目录中加载 poet.song.*.simplified.json)
+  const songpoetDir = path.join(POEMS_DIR, '全唐诗');
+  if (fs.existsSync(songpoetDir)) {
+    const songpoetFiles = fs.readdirSync(songpoetDir)
+      .filter(f => f.startsWith('poet.song.') && f.includes('simplified') && f.endsWith('.json'))
+      .sort((a, b) => {
+        const aNum = parseInt(a.match(/\d+/)[0]);
+        const bNum = parseInt(b.match(/\d+/)[0]);
+        return aNum - bNum;
+      });
+
+    songpoetFiles.forEach(file => {
+      sources.push({
+        type: 'songshi',
+        name: `宋诗 (${file})`,
+        path: path.join(songpoetDir, file),
+        dynasty: '宋',
+        processor: 'processSongshi'
       });
     });
   }

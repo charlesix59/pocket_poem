@@ -10,7 +10,7 @@ const fs = require('fs');
 const path = require('path');
 const { DATA_SOURCES } = require('./db-config');
 
-const DB_PATH = path.join(__dirname, '../pocket_poem.db');
+const DB_PATH = path.join(__dirname, '../assets/pocket_poem.db');
 
 /**
  * 初始化数据库表结构
@@ -96,6 +96,20 @@ function processTangshi(data, dynasty) {
  * 处理宋词数据
  */
 function processSongci(data, dynasty) {
+  return data.map(item => ({
+    title: item.title || item.rhythmic || '无题',
+    author: item.author || '佚名',
+    dynasty: dynasty,
+    content: Array.isArray(item.paragraphs)
+      ? item.paragraphs.join('\n')
+      : (item.paragraphs || '')
+  }));
+}
+
+/**
+ * 处理宋诗数据
+ */
+function processSongshi(data, dynasty) {
   return data.map(item => ({
     title: item.title || item.rhythmic || '无题',
     author: item.author || '佚名',
@@ -397,6 +411,8 @@ function main() {
             let processedData;
             if (source.type === 'tangshi') {
               processedData = processTangshi(rawData, source.dynasty);
+            } else if (source.type === 'songshi') {
+              processedData = processSongshi(rawData, source.dynasty);
             } else if (source.type === 'songci') {
               processedData = processSongci(rawData, source.dynasty);
             } else if (source.type === 'yuanqu') {
