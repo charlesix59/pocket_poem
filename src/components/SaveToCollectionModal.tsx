@@ -1,5 +1,5 @@
 import { useSQLiteContext } from 'expo-sqlite';
-import React, { useEffect, useState } from 'react';
+import React, { useEffect, useState, useCallback } from 'react';
 import {
   ActivityIndicator,
   Alert,
@@ -18,7 +18,6 @@ import {
   getAllCollections,
   getCollectionsForPoem,
   removePoemFromCollection,
-  isCollected,
 } from '@/src/database/queries';
 
 export interface SaveToCollectionModalProps {
@@ -50,13 +49,7 @@ export function SaveToCollectionModal({
   const [collectedIds, setCollectedIds] = useState<number[]>([]);
 
   // 加载收藏夹列表
-  useEffect(() => {
-    if (visible) {
-      loadCollections();
-    }
-  }, [visible]);
-
-  const loadCollections = async () => {
+  const loadCollections = useCallback(async () => {
     if (!db) return;
     setLoading(true);
     try {
@@ -90,7 +83,13 @@ export function SaveToCollectionModal({
     } finally {
       setLoading(false);
     }
-  };
+  }, [db, poemId, onClose]);
+
+  useEffect(() => {
+    if (visible) {
+      loadCollections();
+    }
+  }, [visible, loadCollections]);
 
   const handleCreateCollection = async () => {
     if (!newCollectionName.trim()) {

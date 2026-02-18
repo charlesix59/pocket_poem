@@ -1,35 +1,28 @@
-import React, { useEffect, useState, useCallback } from 'react';
-import {
-  StyleSheet,
-  ScrollView,
-  Text,
-  View,
-  TouchableOpacity,
-  TextInput,
-  Alert,
-  ActivityIndicator,
-  Switch,
-} from 'react-native';
-import { SafeContainer } from '@/src/components';
 import { IconSymbol } from '@/components/ui/icon-symbol';
-import { useRouter } from 'expo-router';
-import Ionicons from '@expo/vector-icons/Ionicons';
-import {
-  AIProvider,
-  AISettings,
-  AI_PROVIDERS,
-} from '@/src/types/ai';
+import { SafeContainer } from '@/src/components';
+import { testAIConnection } from '@/src/services/aiService';
+import { AIProvider, AISettings, AI_PROVIDERS } from '@/src/types/ai';
 import {
   getAISettings,
-  saveAISettings,
   getAPIKey,
-  setAPIKey,
   removeAPIKey,
+  setAPIKey,
   setActiveProvider,
-  getActiveProvider,
-  isProviderConfigured,
 } from '@/src/utils/storage';
-import { testAIConnection } from '@/src/services/aiService';
+import Ionicons from '@expo/vector-icons/Ionicons';
+import { useRouter } from 'expo-router';
+import React, { useCallback, useEffect, useState } from 'react';
+import {
+  ActivityIndicator,
+  Alert,
+  ScrollView,
+  StyleSheet,
+  Switch,
+  Text,
+  TextInput,
+  TouchableOpacity,
+  View,
+} from 'react-native';
 
 export default function SettingsScreen() {
   const router = useRouter();
@@ -54,10 +47,12 @@ export default function SettingsScreen() {
     try {
       setLoading(true);
       const savedSettings = await getAISettings();
-      setSettings(savedSettings || {
-        activeProvider: 'openai',
-        providers: {},
-      });
+      setSettings(
+        savedSettings || {
+          activeProvider: 'openai',
+          providers: {},
+        },
+      );
 
       // 加载各个提供商的 API 密钥
       const keys: Record<AIProvider, string> = {
@@ -84,67 +79,61 @@ export default function SettingsScreen() {
   };
 
   // 保存 API 密钥
-  const handleSaveAPIKey = useCallback(
-    async (provider: AIProvider, apiKey: string) => {
-      if (!apiKey.trim()) {
-        Alert.alert('提示', '请输入 API 密钥');
-        return;
-      }
+  const handleSaveAPIKey = useCallback(async (provider: AIProvider, apiKey: string) => {
+    if (!apiKey.trim()) {
+      Alert.alert('提示', '请输入 API 密钥');
+      return;
+    }
 
-      setSaving(true);
-      try {
-        await setAPIKey(provider, apiKey.trim());
-        
-        // 更新本地状态
-        setApiKeys(prev => ({
-          ...prev,
-          [provider]: apiKey.trim(),
-        }));
+    setSaving(true);
+    try {
+      await setAPIKey(provider, apiKey.trim());
 
-        Alert.alert('成功', '已保存 API 密钥');
-        
-        // 刷新设置
-        await loadSettings();
-      } catch (error) {
-        console.error('保存 API 密钥失败:', error);
-        Alert.alert('错误', '保存 API 密钥失败');
-      } finally {
-        setSaving(false);
-      }
-    },
-    []
-  );
+      // 更新本地状态
+      setApiKeys((prev) => ({
+        ...prev,
+        [provider]: apiKey.trim(),
+      }));
+
+      Alert.alert('成功', '已保存 API 密钥');
+
+      // 刷新设置
+      await loadSettings();
+    } catch (error) {
+      console.error('保存 API 密钥失败:', error);
+      Alert.alert('错误', '保存 API 密钥失败');
+    } finally {
+      setSaving(false);
+    }
+  }, []);
 
   // 删除 API 密钥
-  const handleRemoveAPIKey = useCallback(
-    async (provider: AIProvider) => {
-      Alert.alert('确认删除', `确定要删除 ${AI_PROVIDERS[provider].displayName} 的 API 密钥吗？`, [
-        {
-          text: '取消',
-          style: 'cancel',
+  const handleRemoveAPIKey = useCallback(async (provider: AIProvider) => {
+    Alert.alert('确认删除', `确定要删除 ${AI_PROVIDERS[provider].displayName} 的 API 密钥吗？`, [
+      {
+        text: '取消',
+        style: 'cancel',
+      },
+      {
+        text: '删除',
+        style: 'destructive',
+        onPress: async () => {
+          try {
+            await removeAPIKey(provider);
+            setApiKeys((prev) => ({
+              ...prev,
+              [provider]: '',
+            }));
+            Alert.alert('成功', '已删除 API 密钥');
+            await loadSettings();
+          } catch (error) {
+            console.error('删除 API 密钥失败:', error);
+            Alert.alert('错误', '删除 API 密钥失败');
+          }
         },
-        {
-          text: '删除',
-          style: 'destructive',
-          onPress: async () => {
-            try {
-              await removeAPIKey(provider);
-              setApiKeys(prev => ({
-                ...prev,
-                [provider]: '',
-              }));
-              Alert.alert('成功', '已删除 API 密钥');
-              await loadSettings();
-            } catch (error) {
-              console.error('删除 API 密钥失败:', error);
-              Alert.alert('错误', '删除 API 密钥失败');
-            }
-          },
-        },
-      ]);
-    },
-    []
-  );
+      },
+    ]);
+  }, []);
 
   // 测试连接
   const handleTestConnection = useCallback(
@@ -158,7 +147,7 @@ export default function SettingsScreen() {
       try {
         // 先保存，确保最新的密钥被使用
         await setAPIKey(provider, apiKeys[provider]);
-        
+
         const success = await testAIConnection(provider);
         if (success) {
           Alert.alert('成功', '连接测试成功！');
@@ -172,28 +161,23 @@ export default function SettingsScreen() {
         setTesting(null);
       }
     },
-    [apiKeys]
+    [apiKeys],
   );
 
   // 切换活跃提供商
-  const handleToggleProvider = useCallback(
-    async (provider: AIProvider) => {
-      try {
-        await setActiveProvider(provider);
-        
-        // 更新设置
-        setSettings(prev => 
-          prev ? { ...prev, activeProvider: provider } : null
-        );
-        
-        Alert.alert('成功', `已切换到 ${AI_PROVIDERS[provider].displayName}`);
-      } catch (error) {
-        console.error('切换提供商失败:', error);
-        Alert.alert('错误', '切换提供商失败');
-      }
-    },
-    []
-  );
+  const handleToggleProvider = useCallback(async (provider: AIProvider) => {
+    try {
+      await setActiveProvider(provider);
+
+      // 更新设置
+      setSettings((prev) => (prev ? { ...prev, activeProvider: provider } : null));
+
+      Alert.alert('成功', `已切换到 ${AI_PROVIDERS[provider].displayName}`);
+    } catch (error) {
+      console.error('切换提供商失败:', error);
+      Alert.alert('错误', '切换提供商失败');
+    }
+  }, []);
 
   if (loading) {
     return (
@@ -247,7 +231,7 @@ export default function SettingsScreen() {
         <View style={styles.providersContainer}>
           <Text style={styles.sectionTitle}>AI 服务提供商</Text>
 
-          {providers.map(provider => {
+          {providers.map((provider) => {
             const providerInfo = AI_PROVIDERS[provider];
             const hasKey = !!apiKeys[provider];
             const isActive = settings?.activeProvider === provider;
@@ -259,16 +243,11 @@ export default function SettingsScreen() {
                 <TouchableOpacity
                   style={styles.providerHeader}
                   onPress={() =>
-                    setExpandedProvider(
-                      expandedProvider === provider ? null : provider
-                    )
-                  }
-                >
+                    setExpandedProvider(expandedProvider === provider ? null : provider)
+                  }>
                   <View style={styles.providerInfo}>
                     <Text style={styles.providerName}>{providerInfo.displayName}</Text>
-                    <Text style={styles.providerStatus}>
-                      {hasKey ? '✓ 已配置' : '未配置'}
-                    </Text>
+                    <Text style={styles.providerStatus}>{hasKey ? '✓ 已配置' : '未配置'}</Text>
                   </View>
 
                   <View style={styles.providerActions}>
@@ -280,11 +259,7 @@ export default function SettingsScreen() {
                       />
                     )}
                     <IconSymbol
-                      name={
-                        expandedProvider === provider
-                          ? 'chevron.up'
-                          : 'chevron.down'
-                      }
+                      name={expandedProvider === provider ? 'chevron.up' : 'chevron.down'}
                       size={20}
                       color="#999"
                     />
@@ -294,9 +269,7 @@ export default function SettingsScreen() {
                 {/* 展开内容 */}
                 {expandedProvider === provider && (
                   <View style={styles.providerContent}>
-                    <Text style={styles.descriptionText}>
-                      {providerInfo.description}
-                    </Text>
+                    <Text style={styles.descriptionText}>{providerInfo.description}</Text>
 
                     {/* API 密钥输入 */}
                     <View style={styles.inputSection}>
@@ -307,8 +280,8 @@ export default function SettingsScreen() {
                         placeholderTextColor="#999"
                         secureTextEntry
                         value={apiKeys[provider]}
-                        onChangeText={text =>
-                          setApiKeys(prev => ({
+                        onChangeText={(text) =>
+                          setApiKeys((prev) => ({
                             ...prev,
                             [provider]: text,
                           }))
@@ -353,8 +326,7 @@ export default function SettingsScreen() {
                           (saving || isTesting) && styles.buttonDisabled,
                         ]}
                         onPress={() => handleTestConnection(provider)}
-                        disabled={saving || isTesting || !apiKeys[provider]}
-                      >
+                        disabled={saving || isTesting || !apiKeys[provider]}>
                         {isTesting ? (
                           <ActivityIndicator size="small" color="#007AFF" />
                         ) : (
@@ -372,8 +344,7 @@ export default function SettingsScreen() {
                           saving && styles.buttonDisabled,
                         ]}
                         onPress={() => handleSaveAPIKey(provider, apiKeys[provider])}
-                        disabled={saving || isTesting}
-                      >
+                        disabled={saving || isTesting}>
                         {saving ? (
                           <ActivityIndicator size="small" color="#FFFFFF" />
                         ) : (
@@ -392,8 +363,7 @@ export default function SettingsScreen() {
                             saving && styles.buttonDisabled,
                           ]}
                           onPress={() => handleRemoveAPIKey(provider)}
-                          disabled={saving}
-                        >
+                          disabled={saving}>
                           <IconSymbol name="trash" size={18} color="#FF3B30" />
                           <Text style={styles.buttonTextDanger}>删除</Text>
                         </TouchableOpacity>

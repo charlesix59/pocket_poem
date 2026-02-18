@@ -6,7 +6,6 @@ export { PoemCard } from './PoemCard';
 export { PoemCategory } from './PoemCategory';
 export { SaveButton } from './SaveButton';
 export { SaveToCollectionModal } from './SaveToCollectionModal';
-export { AIAnalysisModal } from './AIAnalysisModal';
 export { AIAnalysisCard } from './AIAnalysisCard';
 export { PPButton } from './PPButton';
 export { SelectableText } from './SelectableText';

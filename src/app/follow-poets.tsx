@@ -1,19 +1,19 @@
-import React, { useEffect, useState, useCallback } from 'react';
-import {
-  StyleSheet,
-  View,
-  Text,
-  FlatList,
-  TouchableOpacity,
-  ActivityIndicator,
-  Alert,
-} from 'react-native';
-import { useSQLiteContext } from 'expo-sqlite';
-import { useRouter } from 'expo-router';
-import Ionicons from '@expo/vector-icons/Ionicons';
 import { SafeContainer } from '@/src/components';
 import { getAuthorsWithCount } from '@/src/database/queries';
 import { getFollowedPoets, setFollowedPoets } from '@/src/utils/storage';
+import Ionicons from '@expo/vector-icons/Ionicons';
+import { useRouter } from 'expo-router';
+import { useSQLiteContext } from 'expo-sqlite';
+import React, { useCallback, useEffect, useState } from 'react';
+import {
+  ActivityIndicator,
+  Alert,
+  FlatList,
+  StyleSheet,
+  Text,
+  TouchableOpacity,
+  View,
+} from 'react-native';
 
 interface AuthorItem {
   author: string;
@@ -62,19 +62,19 @@ export default function FollowPoetsScreen() {
     if (!db) return;
     try {
       setLoading(true);
-      
+
       // 创建热门诗人Set以便快速查找
       const hotAuthorsSet = new Set(HOT_POETS);
-      
+
       // 获取所有诗人及其作品数
       const allAuthorsList = await getAuthorsWithCount(db);
-      
+
       // 标记热门诗人
-      const authorsWithHot: AuthorItem[] = allAuthorsList.map(author => ({
+      const authorsWithHot: AuthorItem[] = allAuthorsList.map((author) => ({
         ...author,
         isHot: hotAuthorsSet.has(author.author),
       }));
-      
+
       // 热门诗人排在前面（按HOT_POETS列表顺序），其他按作品数排序
       authorsWithHot.sort((a, b) => {
         // 都是热门诗人或都不是热门诗人，按HOT_POETS顺序排序
@@ -87,9 +87,9 @@ export default function FollowPoetsScreen() {
         // 都不是热门诗人，按作品数排序
         return b.count - a.count;
       });
-      
+
       setAllAuthors(authorsWithHot);
-      
+
       // 加载已关注的诗人
       const followed = await getFollowedPoets();
       setFollowedPoetsState(new Set(followed));
@@ -103,7 +103,7 @@ export default function FollowPoetsScreen() {
 
   // 切换诗人关注状态
   const togglePoet = useCallback((author: string) => {
-    setFollowedPoetsState(prev => {
+    setFollowedPoetsState((prev) => {
       const newSet = new Set(prev);
       if (newSet.has(author)) {
         newSet.delete(author);
@@ -131,7 +131,7 @@ export default function FollowPoetsScreen() {
 
   // 全选
   const handleSelectAll = useCallback(() => {
-    setFollowedPoetsState(new Set(allAuthors.map(a => a.author)));
+    setFollowedPoetsState(new Set(allAuthors.map((a) => a.author)));
   }, [allAuthors]);
 
   // 清空
@@ -174,6 +174,12 @@ export default function FollowPoetsScreen() {
         </TouchableOpacity>
       </View>
 
+      {/* 提示信息 */}
+      <View style={styles.tipContainer}>
+        <Ionicons name="information-circle" size={16} color="#FF9500" />
+        <Text style={styles.tipText}>首页随机一句只会展示关注诗人的作品</Text>
+      </View>
+
       {/* 操作按钮 */}
       <View style={styles.actionBar}>
         <TouchableOpacity style={styles.actionButton} onPress={handleSelectAll}>
@@ -189,14 +195,11 @@ export default function FollowPoetsScreen() {
       {/* 诗人列表 */}
       <FlatList
         data={allAuthors}
-        keyExtractor={item => item.author}
+        keyExtractor={(item) => item.author}
         contentContainerStyle={styles.listContent}
         renderItem={({ item }) => (
           <TouchableOpacity
-            style={[
-              styles.poetItem,
-              followedPoets.has(item.author) && styles.poetItemSelected,
-            ]}
+            style={[styles.poetItem, followedPoets.has(item.author) && styles.poetItemSelected]}
             onPress={() => togglePoet(item.author)}>
             <View style={styles.poetInfo}>
               <View style={styles.poetHeader}>
@@ -213,10 +216,7 @@ export default function FollowPoetsScreen() {
               <Text style={styles.poetCount}>{item.count} 首诗词</Text>
             </View>
             <View
-              style={[
-                styles.checkbox,
-                followedPoets.has(item.author) && styles.checkboxChecked,
-              ]}>
+              style={[styles.checkbox, followedPoets.has(item.author) && styles.checkboxChecked]}>
               {followedPoets.has(item.author) && (
                 <Ionicons name="checkmark" size={16} color="#FFFFFF" />
               )}
@@ -235,6 +235,22 @@ const styles = StyleSheet.create({
     flex: 1,
     justifyContent: 'center',
     alignItems: 'center',
+  },
+  tipContainer: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    paddingHorizontal: 16,
+    paddingVertical: 12,
+    backgroundColor: '#FFF9E6',
+    borderBottomWidth: 1,
+    borderBottomColor: '#FFE6B3',
+    gap: 8,
+  },
+  tipText: {
+    fontSize: 13,
+    color: '#8B6F47',
+    fontWeight: '500',
+    flex: 1,
   },
   header: {
     flexDirection: 'row',
