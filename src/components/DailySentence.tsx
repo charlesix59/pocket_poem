@@ -1,8 +1,9 @@
-import { useSQLiteContext } from 'expo-sqlite';
+import Ionicons from '@expo/vector-icons/Ionicons';
+import * as Font from 'expo-font';
 import { useRouter } from 'expo-router';
+import { useSQLiteContext } from 'expo-sqlite';
 import React, { useCallback, useEffect, useMemo, useState } from 'react';
 import { ActivityIndicator, StyleSheet, Text, TouchableOpacity, View } from 'react-native';
-import Ionicons from '@expo/vector-icons/Ionicons';
 import { divideSentence, getPoemFragment } from '../utils/sentence';
 
 interface DailySentenceProps {
@@ -58,9 +59,28 @@ export const DailySentence: React.FC<DailySentenceProps> = ({ onRefresh }) => {
   const router = useRouter();
   const [verse, setVerse] = useState<VerseData | null>(null);
   const [loading, setLoading] = useState(false);
+  const [fontsLoaded, setFontsLoaded] = useState(false);
 
   // 生成并缓存纤维纹理（避免每次渲染重新生成）
   const fibers = useMemo(() => generateFibers(), []);
+
+  // 加载自定义字体
+  useEffect(() => {
+    const loadFonts = async () => {
+      try {
+        const fontUri = require('../../assets/poetry-font.woff2');
+        await Font.loadAsync({
+          PoetryFont: fontUri,
+        });
+        setFontsLoaded(true);
+      } catch (error) {
+        console.warn('⚠️ 诗词字体加载失败:', error);
+        setFontsLoaded(true); // 字体加载失败也继续显示，使用系统字体
+      }
+    };
+
+    loadFonts();
+  }, []);
 
   // 获取随机诗句
   const fetchRandomVerse = useCallback(async () => {
@@ -108,7 +128,6 @@ export const DailySentence: React.FC<DailySentenceProps> = ({ onRefresh }) => {
       });
     }
   };
-
 
   // 将文本转换为竖版排列（从右到左）
   const renderVerticalText = (text: string) => {
@@ -317,6 +336,7 @@ const styles = StyleSheet.create({
     width: 32,
     textAlign: 'center' as any,
     height: 32 as any,
+    fontFamily: 'PoetryFont',
   } as any,
   infoSection: {
     alignItems: 'center',
@@ -326,16 +346,18 @@ const styles = StyleSheet.create({
     paddingHorizontal: 16,
   },
   verseTitle: {
-    fontSize: 14,
+    fontSize: 16,
     fontWeight: '600',
     color: '#5C4033',
     marginBottom: 4,
     letterSpacing: 0.5,
+    fontFamily: 'PoetryFont',
   },
   verseAuthor: {
-    fontSize: 12,
+    fontSize: 14,
     color: '#8B6F47',
     fontStyle: 'italic',
+    fontFamily: 'PoetryFont',
   },
   loadingContainer: {
     alignItems: 'center',
