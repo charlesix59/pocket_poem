@@ -57,7 +57,6 @@ function initializeDatabase(db) {
   // 创建索引
   db.exec(`
     CREATE INDEX IF NOT EXISTS idx_author ON poems(author);
-    CREATE INDEX IF NOT EXISTS idx_dynasty ON poems(dynasty);
     CREATE INDEX IF NOT EXISTS idx_title ON poems(title);
     CREATE INDEX IF NOT EXISTS idx_collection_id ON collection_items(collection_id);
     CREATE INDEX IF NOT EXISTS idx_poem_id ON collection_items(poem_id);
@@ -161,6 +160,73 @@ function processCaocao(data, dynasty) {
       ? item.paragraphs.join('\n')
       : (item.paragraphs || ''),
   }));
+}
+
+
+/**
+ * 处理千家诗数据
+ * 结构：{ title, author, content: [{ type, content: [...] }] }
+ * 每个 content 内是 { chapter, author, paragraphs }
+ */
+function processQianjiashi(data, dynasty) {
+  const poems = [];
+  
+  if (Array.isArray(data.content)) {
+    data.content.forEach(section => {
+      if (Array.isArray(section.content)) {
+        section.content.forEach(poem => {
+          if (poem.chapter) {
+            poems.push({
+              title: poem.chapter,
+              author: poem.author || '佚名',
+              dynasty: dynasty,
+              content: Array.isArray(poem.paragraphs)
+                ? poem.paragraphs.join('\n')
+                : (poem.paragraphs || '')
+            });
+          }
+        });
+      }
+    });
+  }
+  
+  return poems;
+}
+
+/**
+ * 处理唐诗三百首数据
+ * 结构类似千家诗：{ title, content: [{ type, content: [...] }] }
+ * 每个 content 内是 { chapter, author, paragraphs }
+ */
+function processTangshisanbaishou(data, dynasty) {
+  const poems = [];
+  
+  if (Array.isArray(data.content)) {
+    data.content.forEach(section => {
+      if (Array.isArray(section.content)) {
+        section.content.forEach(poem => {
+          if (poem.chapter) {
+            // 如果有 subchapter，拼接到 title 里
+            let title = poem.chapter;
+            if (poem.subchapter && poem.subchapter !== poem.chapter) {
+              title = `${poem.chapter}（${poem.subchapter}）`;
+            }
+            
+            poems.push({
+              title: title,
+              author: poem.author || '佚名',
+              dynasty: dynasty,
+              content: Array.isArray(poem.paragraphs)
+                ? poem.paragraphs.join('\n')
+                : (poem.paragraphs || '')
+            });
+          }
+        });
+      }
+    });
+  }
+  
+  return poems;
 }
 
 /**
@@ -347,6 +413,10 @@ function main() {
               processedData = processChuci(rawData, source.dynasty);
             } else if (source.type === 'shijing') {
               processedData = processShijing(rawData, source.dynasty);
+            } else if (source.type === 'qianjiashi') {
+              processedData = processQianjiashi(rawData, source.dynasty);
+            } else if (source.type === 'tangshisanbaishou') {
+              processedData = processTangshisanbaishou(rawData, source.dynasty);
             }
 
           allData = allData.concat(processedData);
