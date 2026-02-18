@@ -151,7 +151,7 @@ export default function PoemDetailScreen() {
 
   if (loading) {
     return (
-      <SafeContainer backgroundColor="#FFFFFF">
+      <SafeContainer backgroundColor="#FFFFFF" edges={['left', 'right', 'bottom']}>
         <View style={styles.loadingContainer}>
           <ActivityIndicator size="large" color="#333" />
         </View>
@@ -161,7 +161,7 @@ export default function PoemDetailScreen() {
 
   if (!poem) {
     return (
-      <SafeContainer backgroundColor="#FFFFFF">
+      <SafeContainer backgroundColor="#FFFFFF" edges={['left', 'right', 'bottom']}>
         <View style={styles.loadingContainer}>
           <Text style={styles.errorText}>诗词未找到</Text>
         </View>
@@ -170,7 +170,7 @@ export default function PoemDetailScreen() {
   }
 
   return (
-    <SafeContainer backgroundColor="#FFFFFF">
+    <SafeContainer backgroundColor="#FFFFFF" edges={['left', 'right', 'bottom']}>
       <ScrollView
         style={styles.scrollView}
         contentContainerStyle={styles.contentContainer}

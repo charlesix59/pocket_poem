@@ -1,21 +1,21 @@
-import React, { useState, useCallback, useRef, useMemo } from 'react';
+import { SafeContainer } from '@/src/components';
+import { PoemCard } from '@/src/components/PoemCard';
+import { getSearchSuggestions, Poem, searchPoems } from '@/src/database/queries';
+import Ionicons from '@expo/vector-icons/Ionicons';
+import { useRouter } from 'expo-router';
+import { useSQLiteContext } from 'expo-sqlite';
+import React, { useCallback, useMemo, useRef, useState } from 'react';
 import {
-  StyleSheet,
-  View,
-  TextInput,
-  FlatList,
-  Text,
-  TouchableOpacity,
   ActivityIndicator,
+  FlatList,
   Keyboard,
   Modal,
+  StyleSheet,
+  Text,
+  TextInput,
+  TouchableOpacity,
+  View,
 } from 'react-native';
-import { useSQLiteContext } from 'expo-sqlite';
-import { useRouter } from 'expo-router';
-import Ionicons from '@expo/vector-icons/Ionicons';
-import { SafeContainer } from '@/src/components';
-import { searchPoems, getSearchSuggestions, Poem } from '@/src/database/queries';
-import { PoemCard } from '@/src/components/PoemCard';
 
 export default function PoemSearchScreen() {
   const db = useSQLiteContext();
@@ -58,75 +58,90 @@ export default function PoemSearchScreen() {
   }, [searchResults, selectedAuthor]);
 
   // 获取搜索建议的函数
-  const fetchSuggestions = useCallback(async (keyword: string) => {
-    if (!db || !keyword.trim()) {
-      setSuggestions([]);
-      return;
-    }
+  const fetchSuggestions = useCallback(
+    async (keyword: string) => {
+      if (!db || !keyword.trim()) {
+        setSuggestions([]);
+        return;
+      }
 
-    setSuggestionsLoading(true);
-    try {
-      const results = await getSearchSuggestions(db, keyword);
-      setSuggestions(results);
-    } catch (error) {
-      console.error('获取搜索建议失败:', error);
-      setSuggestions([]);
-    } finally {
-      setSuggestionsLoading(false);
-    }
-  }, [db]);
+      setSuggestionsLoading(true);
+      try {
+        const results = await getSearchSuggestions(db, keyword);
+        setSuggestions(results);
+      } catch (error) {
+        console.error('获取搜索建议失败:', error);
+        setSuggestions([]);
+      } finally {
+        setSuggestionsLoading(false);
+      }
+    },
+    [db],
+  );
 
   // 处理搜索输入变化，带防抖
-  const handleSearchChange = useCallback((text: string) => {
-    setSearchQuery(text);
+  const handleSearchChange = useCallback(
+    (text: string) => {
+      setSearchQuery(text);
 
-    // 清除之前的防抖计时器
-    if (debounceTimerRef.current) {
-      clearTimeout(debounceTimerRef.current);
-    }
+      // 清除之前的防抖计时器
+      if (debounceTimerRef.current) {
+        clearTimeout(debounceTimerRef.current);
+      }
 
-    // 设置新的防抖计时器（500ms）
-    debounceTimerRef.current = setTimeout(() => {
-      fetchSuggestions(text);
-    }, 500);
-  }, [fetchSuggestions]);
+      // 设置新的防抖计时器（500ms）
+      debounceTimerRef.current = setTimeout(() => {
+        fetchSuggestions(text);
+      }, 500);
+    },
+    [fetchSuggestions],
+  );
 
   // 执行完整搜索
-  const performSearch = useCallback(async (keyword: string) => {
-    if (!db || !keyword.trim()) {
-      setSearchResults([]);
-      setHasSearched(false);
-      return;
-    }
+  const performSearch = useCallback(
+    async (keyword: string) => {
+      if (!db || !keyword.trim()) {
+        setSearchResults([]);
+        setHasSearched(false);
+        return;
+      }
 
-    setResultsLoading(true);
-    setHasSearched(true);
-    try {
-      const results = await searchPoems(db, keyword, 100, 0);
-      setSearchResults(results);
-    } catch (error) {
-      console.error('搜索失败:', error);
-      setSearchResults([]);
-    } finally {
-      setResultsLoading(false);
-    }
-  }, [db]);
+      setResultsLoading(true);
+      setHasSearched(true);
+      try {
+        const results = await searchPoems(db, keyword, 100, 0);
+        setSearchResults(results);
+      } catch (error) {
+        console.error('搜索失败:', error);
+        setSearchResults([]);
+      } finally {
+        setResultsLoading(false);
+      }
+    },
+    [db],
+  );
 
   // 点击建议词时的处理
-  const handleSuggestionPress = useCallback((suggestion: string) => {
-    setSearchQuery(suggestion);
-    setSuggestions([]);
-    Keyboard.dismiss();
-    performSearch(suggestion);
-  }, [performSearch]);
+  const handleSuggestionPress = useCallback(
+    (suggestion: string) => {
+      setSearchQuery(suggestion);
+      setSuggestions([]);
+      Keyboard.dismiss();
+      performSearch(suggestion);
+    },
+    [performSearch],
+  );
 
   // 点击诗词卡片时的处理
-  const handlePoemPress = useCallback((poem: Poem) => {
-    router.push({
-      pathname: '/poem-detail',
-      params: { poemId: poem.id },
-    });
-  }, [router]);
+  const handlePoemPress = useCallback(
+    (poem: Poem) => {
+      router.push({
+        pathname: '/poem-detail',
+        params: { poemId: poem.id },
+      });
+    },
+    [router],
+  );
 
   // 清空搜索
   const handleClearSearch = useCallback(() => {
@@ -151,9 +166,7 @@ export default function PoemSearchScreen() {
 
   // 渲染建议项
   const renderSuggestion = ({ item }: { item: string }) => (
-    <TouchableOpacity
-      style={styles.suggestionItem}
-      onPress={() => handleSuggestionPress(item)}>
+    <TouchableOpacity style={styles.suggestionItem} onPress={() => handleSuggestionPress(item)}>
       <Ionicons name="search" size={16} color="#999" style={styles.suggestionIcon} />
       <Text style={styles.suggestionText} numberOfLines={1}>
         {item}
@@ -167,7 +180,7 @@ export default function PoemSearchScreen() {
   );
 
   return (
-    <SafeContainer backgroundColor="#FFFFFF">
+    <SafeContainer backgroundColor="#FFFFFF" edges={['left', 'right', 'bottom']}>
       {/* 搜索栏 */}
       <View style={styles.searchBarContainer}>
         <Ionicons name="search" size={20} color="#999" />
@@ -193,8 +206,8 @@ export default function PoemSearchScreen() {
           <Ionicons name="search" size={48} color="#DDD" />
           <Text style={styles.emptyText}>输入关键词搜索诗词</Text>
         </View>
-      ) : suggestions.length > 0 && !hasSearched ? (
-        // 显示建议
+      ) : suggestions.length > 0 ? (
+        // 显示建议（无论是否已搜索）
         <FlatList
           data={suggestions}
           renderItem={renderSuggestion}
@@ -230,9 +243,7 @@ export default function PoemSearchScreen() {
                   <TouchableOpacity
                     style={styles.filterDropdown}
                     onPress={() => setShowAuthorDropdown(true)}>
-                    <Text style={styles.filterDropdownText}>
-                      {selectedAuthor || '全部作者'}
-                    </Text>
+                    <Text style={styles.filterDropdownText}>{selectedAuthor || '全部作者'}</Text>
                     <Ionicons name="chevron-down" size={16} color="#333" />
                   </TouchableOpacity>
                   {selectedAuthor && (
@@ -330,6 +341,8 @@ const styles = StyleSheet.create({
     marginHorizontal: 10,
     fontSize: 14,
     color: '#333',
+    textAlign: 'left',
+    textAlignVertical: 'center',
   },
   emptyContainer: {
     flex: 1,

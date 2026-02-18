@@ -6,6 +6,7 @@ interface SafeContainerProps {
   children: React.ReactNode;
   style?: ViewStyle;
   backgroundColor?: string;
+  edges?: ('top' | 'right' | 'bottom' | 'left')[];
 }
 
 /**
@@ -17,9 +18,20 @@ export const SafeContainer: React.FC<SafeContainerProps> = ({
   children,
   style,
   backgroundColor = '#fff',
+  edges,
 }) => {
+  // 默认情况下包含所有安全区域
+  const defaultEdges: ('top' | 'right' | 'bottom' | 'left')[] = [
+    'top',
+    'left',
+    'right',
+    'bottom',
+  ];
+
   return (
-    <SafeAreaView style={[styles.container, { backgroundColor }, style]}>
+    <SafeAreaView
+      edges={edges || defaultEdges}
+      style={[styles.container, { backgroundColor }, style]}>
       {children}
     </SafeAreaView>
   );
