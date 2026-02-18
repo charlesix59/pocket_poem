@@ -32,16 +32,11 @@ const NON_PUNCTUATION_SET = new Set([
 ]);
 
 /**
- * 空白符集（用于识别纯空白字符）
- */
-const WHITESPACE_SET = new Set(['\n', '\r', '\t', ' ', '\u000B', '\u000C']);
-
-/**
  * 获取诗词的一个片段
  * 规则：
  * 1. 找到所有结束标点（"。"、"？"、"！"、"……"）的位置
  * 2. 随机选择一个位置作为起点
- * 3. 从该位置开始，跳过起始空白符，截取14-42个实际字符的片段
+ * 3. 从该位置开始，截取14-42个非标点字符的片段
  * 4. 片段内需要包含结束标点，或在14-42范围内找最后一个标点，或直接在42处截断
  * 
  * @param content 诗词的完整内容
@@ -63,70 +58,44 @@ export const getPoemFragment = (content: string): string => {
 
   // 步骤 2: 随机选择一个结束标点位置作为起点
   const randomEndIndex = endPunctuationIndices[Math.floor(Math.random() * endPunctuationIndices.length)];
-  let startIndex = randomEndIndex + 1;
-
-  // 步骤 3: 跳过起始的所有空白符号（换行、空格等）
-  while (startIndex < content.length && WHITESPACE_SET.has(content[startIndex])) {
-    startIndex++;
-  }
+  const startIndex = randomEndIndex + 1;
 
   // 如果起点已经超过内容长度，则从最后一个位置开始
   if (startIndex >= content.length) {
-    // 从末尾向前找，跳过空白符后的42个实际字符
-    let actualCharCount = 0;
-    for (let i = content.length - 1; i >= 0 && actualCharCount < 42; i--) {
-      if (!WHITESPACE_SET.has(content[i])) {
-        actualCharCount++;
-      }
-    }
-    // 找到合适的起始位置
-    actualCharCount = 0;
-    for (let i = 0; i < content.length && actualCharCount < 42; i++) {
-      if (!WHITESPACE_SET.has(content[i])) {
-        actualCharCount++;
-      }
-      if (actualCharCount > 42) {
-        return content.slice(Math.max(0, i - 42), content.length).trimEnd();
-      }
-    }
-    return content;
+    return content.slice(Math.max(0, content.length - 42));
   }
 
-  // 步骤 4-6: 从起点开始，截取14-42个实际字符的片段
-  let actualCharCount = 0;
+  // 步骤 3-6: 从起点开始，截取14-42个非标点字符的片段
+  let nonPunctuationCount = 0;
   let endFragmentIndex = startIndex;
   let lastPunctuationInRange = -1;
 
   for (let i = startIndex; i < content.length; i++) {
     const char = content[i];
-    
-    // 跳过空白符，但不计入计数
-    if (WHITESPACE_SET.has(char)) {
-      endFragmentIndex = i + 1;
-      continue;
+    const isNonPunctuation = !NON_PUNCTUATION_SET.has(char);
+
+    if (isNonPunctuation) {
+      nonPunctuationCount++;
     }
 
-    // 标点符号计入计数
-    actualCharCount++;
-
     // 记录14-42范围内最后一个标点的位置
-    if (actualCharCount >= 14 && actualCharCount <= 42 && NON_PUNCTUATION_SET.has(char)) {
+    if (nonPunctuationCount >= 14 && nonPunctuationCount <= 42 && NON_PUNCTUATION_SET.has(char)) {
       lastPunctuationInRange = i;
     }
 
-    // 如果找到结束标点且已经有14个实际字符
-    if (actualCharCount >= 14 && END_PUNCTUATION_SET.has(char)) {
+    // 如果找到结束标点且已经有14个非标点字符
+    if (nonPunctuationCount >= 14 && END_PUNCTUATION_SET.has(char)) {
       endFragmentIndex = i + 1;
       break;
     }
 
-    // 如果已经有42个实际字符
-    if (actualCharCount >= 42) {
+    // 如果已经有42个非标点字符
+    if (nonPunctuationCount >= 42) {
       // 如果在14-42范围内有标点，则在最后一个标点处截断
       if (lastPunctuationInRange !== -1) {
         endFragmentIndex = lastPunctuationInRange + 1;
       } else {
-        // 否则直接在当前位置截断
+        // 否则直接在42处截断
         endFragmentIndex = i + 1;
       }
       break;
@@ -135,7 +104,7 @@ export const getPoemFragment = (content: string): string => {
     endFragmentIndex = i + 1;
   }
 
-  return content.slice(startIndex, endFragmentIndex).trimEnd();
+  return content.slice(startIndex, endFragmentIndex);
 };
 
 /**
