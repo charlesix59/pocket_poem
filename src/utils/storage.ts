@@ -24,4 +24,7 @@ export {
   importSettings,
   clearAllData,
   getStorageInfo,
+  // 关注诗人
+  getFollowedPoets,
+  setFollowedPoets,
 } from './secureStorage';

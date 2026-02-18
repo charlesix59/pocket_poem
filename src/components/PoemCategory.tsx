@@ -11,6 +11,7 @@ import { useSQLiteContext } from 'expo-sqlite';
 import { useRouter } from 'expo-router';
 import { Poem, getAuthorsWithCount } from '@/src/database/queries';
 import { PoemCard } from './PoemCard';
+import { getFollowedPoets } from '@/src/utils/storage';
 
 interface AuthorWithCount {
   author: string;
@@ -44,10 +45,27 @@ export function PoemCategory() {
     setAuthorsError(null);
     try {
       const data = await getAuthorsWithCount(db);
-      setAuthors(data);
+      
+      // 获取已关注的诗人列表
+      const followedPoets = await getFollowedPoets();
+      const followedSet = new Set(followedPoets);
+      
+      // 将关注的诗人排到前面
+      const sortedData = data.sort((a, b) => {
+        const aFollowed = followedSet.has(a.author);
+        const bFollowed = followedSet.has(b.author);
+        
+        if (aFollowed && !bFollowed) return -1;
+        if (!aFollowed && bFollowed) return 1;
+        
+        // 都关注或都没关注时，保持原有顺序（按作品数排序）
+        return 0;
+      });
+      
+      setAuthors(sortedData);
       // 自动选择第一个作者
-      if (data.length > 0) {
-        setSelectedAuthor(data[0].author);
+      if (sortedData.length > 0) {
+        setSelectedAuthor(sortedData[0].author);
       }
     } catch (err) {
       setAuthorsError(err instanceof Error ? err : new Error('加载作者列表失败'));
@@ -133,29 +151,39 @@ export function PoemCategory() {
     []
   );
 
-  const renderAuthor = ({ item }: { item: AuthorWithCount }) => (
-    <TouchableOpacity
-      style={[
-        styles.authorItem,
-        selectedAuthor === item.author && styles.authorItemActive,
-      ]}
-      onPress={() => handleAuthorPress(item.author)}>
-      <Text
-        style={[
-          styles.authorName,
-          selectedAuthor === item.author && styles.authorNameActive,
-        ]}
-        numberOfLines={1}>
-        {item.author}
-      </Text>
-      <Text
-        style={[
-          styles.authorCount,
-          selectedAuthor === item.author && styles.authorCountActive,
-        ]}>
-        {item.count}
-      </Text>
-    </TouchableOpacity>
+  const renderAuthor = useCallback(
+    ({ item }: { item: AuthorWithCount }) => {
+      // 检查该诗人是否被关注
+      const isFollowed = authors.length > 0 && 
+        authors.some(a => a.author === item.author) &&
+        authors.indexOf(item) === 0;
+      
+      return (
+        <TouchableOpacity
+          style={[
+            styles.authorItem,
+            selectedAuthor === item.author && styles.authorItemActive,
+          ]}
+          onPress={() => handleAuthorPress(item.author)}>
+          <Text
+            style={[
+              styles.authorName,
+              selectedAuthor === item.author && styles.authorNameActive,
+            ]}
+            numberOfLines={1}>
+            {item.author}
+          </Text>
+          <Text
+            style={[
+              styles.authorCount,
+              selectedAuthor === item.author && styles.authorCountActive,
+            ]}>
+            {item.count}
+          </Text>
+        </TouchableOpacity>
+      );
+    },
+    [authors, selectedAuthor]
   );
 
   if (authorsLoading) {

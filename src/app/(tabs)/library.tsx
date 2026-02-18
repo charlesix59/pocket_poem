@@ -15,7 +15,7 @@ export default function LibraryScreen() {
   };
 
   return (
-    <SafeContainer backgroundColor="#FFFFFF">
+    <SafeContainer backgroundColor="#FFFFFF" edges={['top', 'left', 'right']}>
       {/* 搜索栏 */}
       <TouchableOpacity
         style={styles.searchBarContainer}

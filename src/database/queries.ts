@@ -247,6 +247,63 @@ export async function getRandomPoems(db: SQLite.SQLiteDatabase, count: number = 
 }
 
 /**
+ * 从指定作者的作品中获取随机一首诗词
+ */
+export async function getRandomPoemByAuthors(
+  db: SQLite.SQLiteDatabase,
+  authors: string[]
+) {
+  try {
+    if (!authors || authors.length === 0) {
+      return null;
+    }
+    
+    // 构建 SQL 中的占位符
+    const placeholders = authors.map(() => '?').join(',');
+    
+    const poem = await db.getFirstAsync<Poem>(
+      `SELECT * FROM poems 
+       WHERE author IN (${placeholders})
+       ORDER BY RANDOM() LIMIT 1`,
+      authors
+    );
+    return poem || null;
+  } catch (error) {
+    console.error('从指定作者获取随机诗词失败:', error);
+    throw error;
+  }
+}
+
+/**
+ * 从指定作者的作品中获取多首随机诗词
+ */
+export async function getRandomPoemsByAuthors(
+  db: SQLite.SQLiteDatabase,
+  authors: string[],
+  count: number = 5
+) {
+  try {
+    if (!authors || authors.length === 0) {
+      return [];
+    }
+    
+    // 构建 SQL 中的占位符
+    const placeholders = authors.map(() => '?').join(',');
+    
+    const poems = await db.getAllAsync<Poem>(
+      `SELECT * FROM poems 
+       WHERE author IN (${placeholders})
+       ORDER BY RANDOM() LIMIT ?`,
+      [...authors, count]
+    );
+    return poems;
+  } catch (error) {
+    console.error('从指定作者获取随机诗词失败:', error);
+    throw error;
+  }
+}
+
+/**
  * 获取数据库统计信息
  */
 export async function getDatabaseStatistics(db: SQLite.SQLiteDatabase) {

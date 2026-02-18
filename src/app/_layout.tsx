@@ -51,6 +51,14 @@ export default function RootLayout() {
                 headerBackTitle: '返回'
               }} 
             />
+            <Stack.Screen 
+              name="follow-poets" 
+              options={{ 
+                title: '关注诗人',
+                headerShown: false,
+                headerBackTitle: '返回'
+              }} 
+            />
             <Stack.Screen name="modal" options={{ presentation: 'modal', title: 'Modal' }} />
           </Stack>
           <StatusBar style="auto" />

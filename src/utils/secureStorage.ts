@@ -9,6 +9,7 @@ import { AISettings, AIProvider } from '@/src/types/ai';
 const STORAGE_KEYS = {
   AI_SETTINGS: '@pocket_poem:ai_settings',
   BACKUP_SETTINGS: '@pocket_poem:backup_settings',
+  FOLLOWED_POETS: '@pocket_poem:followed_poets',
 };
 
 /**
@@ -335,5 +336,32 @@ export async function getStorageInfo(): Promise<{
   } catch (error) {
     console.error('获取存储信息失败:', error);
     return { settings: 0, backups: 0, total: 0 };
+  }
+}
+
+/**
+ * 获取已关注的诗人
+ */
+export async function getFollowedPoets(): Promise<string[]> {
+  try {
+    const data = await AsyncStorage.getItem(STORAGE_KEYS.FOLLOWED_POETS);
+    if (!data) return [];
+    return JSON.parse(data);
+  } catch (error) {
+    console.error('获取已关注诗人失败:', error);
+    return [];
+  }
+}
+
+/**
+ * 保存已关注的诗人
+ */
+export async function setFollowedPoets(poets: string[]): Promise<boolean> {
+  try {
+    await AsyncStorage.setItem(STORAGE_KEYS.FOLLOWED_POETS, JSON.stringify(poets));
+    return true;
+  } catch (error) {
+    console.error('保存已关注诗人失败:', error);
+    return false;
   }
 }

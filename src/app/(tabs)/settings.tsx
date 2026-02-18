@@ -12,6 +12,8 @@ import {
 } from 'react-native';
 import { SafeContainer } from '@/src/components';
 import { IconSymbol } from '@/components/ui/icon-symbol';
+import { useRouter } from 'expo-router';
+import Ionicons from '@expo/vector-icons/Ionicons';
 import {
   AIProvider,
   AISettings,
@@ -30,6 +32,7 @@ import {
 import { testAIConnection } from '@/src/services/aiService';
 
 export default function SettingsScreen() {
+  const router = useRouter();
   const [settings, setSettings] = useState<AISettings | null>(null);
   const [loading, setLoading] = useState(true);
   const [saving, setSaving] = useState(false);
@@ -194,7 +197,7 @@ export default function SettingsScreen() {
 
   if (loading) {
     return (
-      <SafeContainer backgroundColor="#FFFFFF">
+      <SafeContainer backgroundColor="#FFFFFF" edges={['top', 'left', 'right']}>
         <View style={styles.loadingContainer}>
           <ActivityIndicator size="large" color="#007AFF" />
         </View>
@@ -205,12 +208,31 @@ export default function SettingsScreen() {
   const providers = Object.keys(AI_PROVIDERS) as AIProvider[];
 
   return (
-    <SafeContainer backgroundColor="#FFFFFF">
+    <SafeContainer backgroundColor="#FFFFFF" edges={['top', 'left', 'right']}>
       <ScrollView style={styles.container} showsVerticalScrollIndicator={false}>
         {/* 标题 */}
         <View style={styles.header}>
           <Text style={styles.headerTitle}>设置</Text>
-          <Text style={styles.headerSubtitle}>配置 AI 服务</Text>
+          <Text style={styles.headerSubtitle}>个性化您的体验</Text>
+        </View>
+
+        {/* 关注诗人入口 */}
+        <TouchableOpacity
+          style={styles.followPoetsCard}
+          onPress={() => router.push('/follow-poets')}>
+          <View style={styles.followPoetsContent}>
+            <IconSymbol name="person.2.fill" size={24} color="#007AFF" />
+            <View style={styles.followPoetsText}>
+              <Text style={styles.followPoetsTitle}>关注诗人</Text>
+              <Text style={styles.followPoetsSubtitle}>选择您喜爱的诗人作品</Text>
+            </View>
+          </View>
+          <Ionicons name="chevron-forward" size={20} color="#999" />
+        </TouchableOpacity>
+
+        {/* AI 服务配置标题 */}
+        <View style={styles.sectionHeader}>
+          <Text style={styles.sectionHeaderText}>AI 服务配置</Text>
         </View>
 
         {/* 说明 */}
@@ -419,6 +441,48 @@ const styles = StyleSheet.create({
   headerSubtitle: {
     fontSize: 15,
     color: '#999',
+  },
+  followPoetsCard: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'space-between',
+    marginHorizontal: 20,
+    marginVertical: 16,
+    paddingHorizontal: 16,
+    paddingVertical: 14,
+    backgroundColor: '#E8F4FF',
+    borderRadius: 12,
+    borderWidth: 1,
+    borderColor: '#B3D9FF',
+  },
+  followPoetsContent: {
+    flex: 1,
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 12,
+  },
+  followPoetsText: {
+    flex: 1,
+  },
+  followPoetsTitle: {
+    fontSize: 16,
+    fontWeight: '600',
+    color: '#007AFF',
+    marginBottom: 2,
+  },
+  followPoetsSubtitle: {
+    fontSize: 13,
+    color: '#0051D5',
+  },
+  sectionHeader: {
+    paddingHorizontal: 20,
+    paddingVertical: 12,
+    marginTop: 8,
+  },
+  sectionHeaderText: {
+    fontSize: 14,
+    fontWeight: '600',
+    color: '#666',
   },
   infoCard: {
     marginHorizontal: 20,

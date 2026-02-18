@@ -208,7 +208,7 @@ export default function CollectionsScreen() {
 
   if (loading) {
     return (
-      <SafeContainer backgroundColor="#FFFFFF">
+      <SafeContainer backgroundColor="#FFFFFF" edges={['top', 'left', 'right']}>
         <View style={styles.loadingContainer}>
           <ActivityIndicator size="large" color="#333" />
         </View>
@@ -218,7 +218,7 @@ export default function CollectionsScreen() {
 
   if (collections.length === 0) {
     return (
-      <SafeContainer backgroundColor="#FFFFFF">
+      <SafeContainer backgroundColor="#FFFFFF" edges={['top', 'left', 'right']}>
         <View style={styles.emptyContainer}>
           <IconSymbol name="bookmark" size={48} color="#CCC" />
           <Text style={styles.emptyText}>还没有任何收藏夹</Text>
@@ -229,7 +229,7 @@ export default function CollectionsScreen() {
   }
 
   return (
-    <SafeContainer backgroundColor="#FFFFFF">
+    <SafeContainer backgroundColor="#FFFFFF" edges={['top', 'left', 'right']}>
       <View style={styles.pageContent}>
         <View style={styles.header}>
           <Text style={styles.headerTitle}>辑录</Text>

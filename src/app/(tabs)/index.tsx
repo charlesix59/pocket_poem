@@ -23,7 +23,7 @@ export default function HomeScreen() {
   }, [db]);
 
   return (
-    <SafeContainer backgroundColor="#f5f5f5">
+    <SafeContainer backgroundColor="#f5f5f5" edges={['top', 'left', 'right']}>
       <ScrollView style={styles.container}>
         {/* 统计信息卡片 */}
         <View style={styles.statsCard}>

@@ -5,6 +5,8 @@ import { useSQLiteContext } from 'expo-sqlite';
 import React, { useCallback, useEffect, useMemo, useState } from 'react';
 import { ActivityIndicator, StyleSheet, Text, TouchableOpacity, View } from 'react-native';
 import { divideSentence, getPoemFragment } from '../utils/sentence';
+import { getFollowedPoets } from '../utils/storage';
+import { getRandomPoemByAuthors, getRandomPoem } from '../database/queries';
 
 interface DailySentenceProps {
   onRefresh?: () => void;
@@ -87,12 +89,17 @@ export const DailySentence: React.FC<DailySentenceProps> = ({ onRefresh }) => {
     if (!db) return;
     setLoading(true);
     try {
-      const result = await db.getFirstAsync<any>(
-        `SELECT id, title, content, author, dynasty 
-         FROM poems 
-         ORDER BY RANDOM() 
-         LIMIT 1`,
-      );
+      // 先获取已关注的诗人列表
+      const followedPoets = await getFollowedPoets();
+      
+      let result: any;
+      if (followedPoets && followedPoets.length > 0) {
+        // 从关注的诗人作品中随机获取
+        result = await getRandomPoemByAuthors(db, followedPoets);
+      } else {
+        // 如果没有关注诗人，则从所有诗词中随机获取
+        result = await getRandomPoem(db);
+      }
 
       if (result) {
         setVerse({
