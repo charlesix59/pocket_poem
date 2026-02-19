@@ -18,6 +18,9 @@ const MAPPING = {
   'paperplane.fill': 'send',
   'chevron.left.forwardslash.chevron.right': 'code',
   'chevron.right': 'chevron-right',
+  'books.vertical.fill': 'library-books',
+  'bookmark.fill': 'bookmark',
+  'gearshape.fill': 'settings',
 } as IconMapping;
 
 /**
