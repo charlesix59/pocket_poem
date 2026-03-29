@@ -36,7 +36,10 @@ jobs:
           python-version: '3.11'
 
       - name: 🔨 Build database
-        run: npm run generate-db
+        run: |
+          npm rebuild better-sqlite3 || npm install better-sqlite3 --legacy-peer-deps
+          node -e "require('better-sqlite3'); console.log('✓ better-sqlite3 OK')"
+          npm run generate-db
 
       - name: 🏗️ Build iOS with EAS
         env:

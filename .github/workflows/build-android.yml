@@ -30,20 +30,21 @@ jobs:
           eas-version: latest
           token: ${{ secrets.EXPO_TOKEN }}
 
-      - name: 🛠️ Install build tools for native modules
-        run: sudo apt-get install -y build-essential python3
-
       - name: 📦 Install dependencies
         run: npm ci --legacy-peer-deps
 
       - name: 🔨 Build database
-        run: npm run generate-db
+        run: |
+          # 确保 better-sqlite3 原生模块已编译安装
+          npm rebuild better-sqlite3 || npm install better-sqlite3 --legacy-peer-deps
+          node -e "require('better-sqlite3'); console.log('✓ better-sqlite3 OK')"
+          npm run generate-db
 
       - name: 💾 Stage database for EAS
         run: |
           git config user.name "github-actions[bot]"
           git config user.email "github-actions[bot]@users.noreply.github.com"
-          git add -f pocket_poem.db
+          git add -f assets/pocket_poem.db
           git commit -m "chore: add generated db for build" || echo "nothing to commit"
 
       - name: ☕ Setup Java
