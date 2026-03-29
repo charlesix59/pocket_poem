@@ -35,9 +35,6 @@ jobs:
         with:
           python-version: '3.11'
 
-      - name: 🔨 Install better-sqlite3 (public registry)
-        run: npm install better-sqlite3 --registry https://registry.npmjs.org --no-save
-
       - name: 🗄️ Build database
         run: npm run generate-db
 
